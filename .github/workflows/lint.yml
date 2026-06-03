@@ -22,11 +22,13 @@ jobs:
           - app: zabbix-agent2
     steps:
       - uses: actions/checkout@v6
-      - uses: hadolint/hadolint-action@v3.1.0
-        with:
-          dockerfile: ${{ matrix.app }}/Dockerfile
-          config: ${{ github.workspace }}/.hadolint.yaml
-          failure-threshold: warning
+      - name: Install hadolint
+        run: |
+          curl -sSLo /usr/local/bin/hadolint \
+            https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64
+          chmod +x /usr/local/bin/hadolint
+      - name: Lint
+        run: hadolint "${{ matrix.app }}/Dockerfile"
 
   shellcheck:
     name: ShellCheck
