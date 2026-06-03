@@ -1,0 +1,29 @@
+name: Lint
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  lint:
+    name: Lint ${{ matrix.app }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - app: avahi-reflector
+          - app: flicd
+          - app: keepalived
+          - app: picamera
+          - app: tailscale
+          - app: zabbix-agent
+          - app: zabbix-agent2
+    steps:
+      - uses: actions/checkout@v6
+      - uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: ${{ matrix.app }}/Dockerfile
+          config: .hadolint.yaml
+          failure-threshold: error

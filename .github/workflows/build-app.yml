@@ -13,17 +13,6 @@ on:
         type: string
 
 jobs:
-  lint:
-    name: Lint ${{ inputs.app }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: hadolint/hadolint-action@v3.3.0
-        with:
-          dockerfile: ${{ inputs.app }}/Dockerfile
-          config: .hadolint.yaml
-          failure-threshold: error
-
   init:
     name: Initialize ${{ inputs.app }}
     runs-on: ubuntu-latest
@@ -62,7 +51,7 @@ jobs:
 
   build:
     name: Build ${{ matrix.arch }}
-    needs: [lint, init]
+    needs: [init]
     runs-on: ${{ matrix.os }}
     permissions:
       contents: read

@@ -8,7 +8,7 @@ LABEL maintainer="Philipp Schmitt <philipp@schmitt.co>"
 
 RUN apt-get update && \
     # Dependencies
-    apt-get install -y --no-install-recommends git jq && \
+    apt-get install -y --no-install-recommends ca-certificates git jq && \
     case $(arch) in \
         x86_64|amd64) export ARCH=x86_64 ;; \
         i386) export ARCH=i386 ;; \

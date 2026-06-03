@@ -12,7 +12,7 @@ https://github.com/pschmitt/home-assistant-apps
 > [!WARNING]
 > **This repository was renamed from `home-assistant-addons` to `home-assistant-apps`.**
 > If you already have the old repository added to Home Assistant, please update it:
-> 1. Go to **Settings → Add-ons → ⋮ → Repositories** and remove `https://github.com/pschmitt/home-assistant-addons`
+> 1. Go to [**Settings → Add-ons → Repositories**](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fpschmitt%2Fhome-assistant-apps) and remove `https://github.com/pschmitt/home-assistant-addons`
 > 2. Add the new URL: `https://github.com/pschmitt/home-assistant-apps`
 >    (or use the badge above)
 
