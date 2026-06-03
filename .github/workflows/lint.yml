@@ -25,7 +25,7 @@ jobs:
       - uses: hadolint/hadolint-action@v3.1.0
         with:
           dockerfile: ${{ matrix.app }}/Dockerfile
-          config: .hadolint.yaml
+          config: ${{ github.workspace }}/.hadolint.yaml
           failure-threshold: warning
 
   shellcheck:
