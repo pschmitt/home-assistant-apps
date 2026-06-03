@@ -26,7 +26,7 @@ jobs:
         with:
           dockerfile: ${{ matrix.app }}/Dockerfile
           config: .hadolint.yaml
-          failure-threshold: error
+          failure-threshold: warning
 
   shellcheck:
     name: ShellCheck

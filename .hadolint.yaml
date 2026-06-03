@@ -1,6 +1,16 @@
 ignore:
-  - DL3006  # Tag FROM image explicitly - intentional (HA app base images)
-  - DL3007  # Using latest tag - intentional
-  - DL3008  # Pin versions in apt-get install - intentional
-  - DL3013  # Pin pip versions - intentional
-  - DL3018  # Pin versions in apk add - intentional
+  # DL3006: Always tag the version of an image explicitly
+  # Intentional: HA app base images use rolling tags by design
+  - DL3006
+  # DL3007: Using latest is prone to errors if the image will ever update
+  # Intentional: we want to track latest Alpine/upstream base images
+  - DL3007
+  # DL3008: Pin versions in apt-get install
+  # Intentional: we intentionally use unpinned apt packages for latest security patches
+  - DL3008
+  # DL3013: Pin versions in pip install
+  # Intentional: we intentionally use unpinned pip packages
+  - DL3013
+  # DL3018: Pin versions in apk add
+  # Intentional: we intentionally use unpinned apk packages for latest security patches
+  - DL3018
