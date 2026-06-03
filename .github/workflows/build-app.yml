@@ -19,13 +19,28 @@ jobs:
     outputs:
       matrix: ${{ steps.matrix.outputs.matrix }}
       version: ${{ steps.version.outputs.version }}
+      extra_build_args: ${{ steps.build_args.outputs.extra_build_args }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Read version
         id: version
         run: |
           echo "version=$(jq -r .version '${{ inputs.app }}/config.json')" >> "$GITHUB_OUTPUT"
+
+      - name: Read extra build args from build.json
+        id: build_args
+        run: |
+          if [[ -f '${{ inputs.app }}/build.json' ]]; then
+            {
+              echo "extra_build_args<<EOF"
+              jq -r '.args // {} | to_entries[] | "\(.key)=\(.value)"' \
+                '${{ inputs.app }}/build.json'
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+          else
+            echo "extra_build_args=" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Prepare build matrix
         id: matrix
@@ -46,12 +61,13 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJSON(needs.init.outputs.matrix) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Build image
         uses: home-assistant/builder/actions/build-image@2026.03.2
         with:
           arch: ${{ matrix.arch }}
+          build-args: ${{ needs.init.outputs.extra_build_args }}
           cache-gha-scope: ${{ inputs.app }}
           container-registry-password: ${{ secrets.GITHUB_TOKEN }}
           context: ${{ inputs.app }}
