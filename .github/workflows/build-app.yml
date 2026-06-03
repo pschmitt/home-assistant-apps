@@ -75,11 +75,12 @@ jobs:
           image-tags: |
             ${{ needs.init.outputs.version }}
             latest
-          push: "true"
+          push: "${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && 'true' || 'false' }}"
           version: ${{ needs.init.outputs.version }}
 
   manifest:
     name: Publish multi-arch manifest
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     needs: [init, build]
     runs-on: ubuntu-latest
     permissions:
