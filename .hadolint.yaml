@@ -1,4 +1,4 @@
-ignore:
+ignored:
   - DL3006  # Always tag FROM image explicitly — intentional, HA app base images use rolling tags
   - DL3007  # Using latest tag is prone to errors — intentional, we want latest base images
   - DL3008  # Pin versions in apt-get install — intentional, unpinned picks up security patches
