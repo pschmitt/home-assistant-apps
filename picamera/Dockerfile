@@ -3,7 +3,7 @@ FROM python:3
 ARG BUILD_ARCH
 ARG BUILD_VERSION
 
-LABEL maintainer "Philipp Schmitt <philipp@schmitt.co>"
+LABEL maintainer="Philipp Schmitt <philipp@schmitt.co>"
 
 RUN apt-get update && \
     apt-get install -y jq && \

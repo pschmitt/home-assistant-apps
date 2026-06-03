@@ -2,7 +2,7 @@ ARG BUILD_ARCH
 ARG BUILD_VERSION
 ARG BUILD_BASE_IMAGE=zabbix/zabbix-agent2:alpine-7.4-latest
 
-FROM ${BUILD_BASE_IMAGE} as builder
+FROM ${BUILD_BASE_IMAGE} AS builder
 
 FROM alpine:edge
 
@@ -11,7 +11,7 @@ LABEL org.opencontainers.image.authors="Philipp Schmitt <philipp@schmitt.co>, Lu
       org.opencontainers.image.title="Zabbix Agent 2 image for Home Assistant Add-on" \
       org.opencontainers.image.base.name="alpine"
 
-ENV LANG C.UTF-8
+ENV LANG=C.UTF-8
 
 # Install requirements for add-on
 RUN apk add --no-cache jq "zabbix-agent2=~7.4" zabbix-agent2-plugin-alpine && \

@@ -3,9 +3,9 @@ FROM osixia/keepalived
 ARG BUILD_ARCH
 ARG BUILD_VERSION
 
-LABEL maintainer "Philipp Schmitt <philipp@schmitt.co>"
+LABEL maintainer="Philipp Schmitt <philipp@schmitt.co>"
 
-ENV LANG C.UTF-8
+ENV LANG=C.UTF-8
 
 # Install requirements for add-on
 RUN apk add --no-cache jq

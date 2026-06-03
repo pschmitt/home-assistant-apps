@@ -13,6 +13,11 @@ latest_version() {
     jq -er '.tag_name | sub("^v"; "")'
 }
 
+static_binary_available() {
+  local version="$1"
+  curl -fsI "https://pkgs.tailscale.com/stable/tailscale_${version}_amd64.tgz" > /dev/null 2>&1
+}
+
 new_version_available() {
   local current_version
   local latest_version
@@ -20,7 +25,16 @@ new_version_available() {
   current_version="$(current_version)"
   latest_version="$(latest_version)"
 
-  [[ "$current_version" != "$latest_version" ]]
+  if [[ "$current_version" == "$latest_version" ]]; then
+    return 1
+  fi
+
+  if ! static_binary_available "$latest_version"; then
+    echo "Static binary for $latest_version not yet available, skipping" >&2
+    return 1
+  fi
+
+  return 0
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]

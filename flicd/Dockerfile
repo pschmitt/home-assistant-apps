@@ -4,7 +4,7 @@ ARG BUILD_ARCH
 ARG BUILD_VERSION
 ARG FLICD_VERSION=${BUILD_VERSION}
 
-LABEL maintainer "Philipp Schmitt <philipp@schmitt.co>"
+LABEL maintainer="Philipp Schmitt <philipp@schmitt.co>"
 
 RUN apt-get update && \
     # Dependencies

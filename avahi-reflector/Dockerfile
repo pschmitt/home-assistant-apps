@@ -1,6 +1,6 @@
 FROM alpine
 
-ENV LANG C.UTF-8
+ENV LANG=C.UTF-8
 
 COPY avahi-daemon.conf /etc/avahi/avahi-daemon.conf
 COPY run.sh /run.sh

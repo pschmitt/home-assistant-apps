@@ -8,7 +8,7 @@ LABEL org.opencontainers.image.authors="Philipp Schmitt <philipp@schmitt.co>, Lu
       org.opencontainers.image.title="Zabbix Agent image for Home Assistant Add-on" \
       org.opencontainers.image.base.name="alpine"
 
-ENV LANG C.UTF-8
+ENV LANG=C.UTF-8
 
 # Install requirements for add-on
 RUN apk add --no-cache jq "zabbix-agent=~7.4"
