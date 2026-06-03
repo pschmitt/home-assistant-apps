@@ -38,7 +38,7 @@ docker run -it --rm \
   -v $PWD/data:/data:rw \
   -e AUTHKEY=tskey-XXXXXXXX \
   -e ADVERTISE_ROUTES=192.168.1.0/24 \
-  pschmitt/home-assistant-addon-amd64-tailscale
+  ghcr.io/pschmitt/amd64-home-assistant-app-tailscale
 ```
 
 If you prefer to not use env args you can use the following form:
@@ -51,7 +51,7 @@ docker run -it --rm \
   --cap-add=NET_ADMIN \
   --device /dev/net/tun \
   -v $PWD/data:/data:rw \
-  pschmitt/home-assistant-addon-amd64-tailscale \
+  ghcr.io/pschmitt/amd64-home-assistant-app-tailscale \
     --authkey=tskey-XXXXXXXX \
     --advertise-routes=192.168.1.0/24
 ```

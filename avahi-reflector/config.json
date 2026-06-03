@@ -1,13 +1,13 @@
 {
   "name": "Avahi Reflector",
-  "version": "1.0",
+  "version": "1.1",
   "slug": "avahi_reflector",
   "description": "avahi-daemon reflector",
   "arch": [
     "aarch64",
     "amd64"
   ],
-  "image": "pschmitt/home-assistant-addon-{arch}-avahi-reflector",
+  "image": "ghcr.io/pschmitt/{arch}-home-assistant-app-avahi-reflector",
   "startup": "application",
   "boot": "auto",
   "options": {

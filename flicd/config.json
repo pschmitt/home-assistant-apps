@@ -1,11 +1,11 @@
 {
-  "image": "pschmitt/home-assistant-addon-{arch}-flicd",
+  "image": "ghcr.io/pschmitt/{arch}-home-assistant-app-flicd",
   "name": "flicd",
   "arch": [
     "aarch64",
     "amd64"
   ],
-  "version": "2.0.3",
+  "version": "2.0.4",
   "slug": "flicd",
   "description": "React to flic button presses",
   "startup": "services",

@@ -1,11 +1,11 @@
-# home-assistant-addons
+# home-assistant-apps
 
-[![Build](https://github.com/pschmitt/home-assistant-addons/workflows/Build/badge.svg)](https://github.com/pschmitt/home-assistant-addons/actions?query=workflow%3ABuild)
+[![Build](https://github.com/pschmitt/home-assistant-apps/workflows/Build/badge.svg)](https://github.com/pschmitt/home-assistant-apps/actions?query=workflow%3ABuild)
 
-Home Assistant addons by Philipp Schmitt
+Home Assistant apps by Philipp Schmitt
 
 Add to Home Assistant using the repository url:
-https://github.com/pschmitt/home-assistant-addons
+https://github.com/pschmitt/home-assistant-apps
 
 ## flicd
 
@@ -25,7 +25,7 @@ Flic server is now up and running!
 Initialization of Bluetooth controller done!
 ```
 
-By default, flicd is going to use `hci0` bluetooth controller. If you have multiple bluetooth controllers you can configure flicd to use another controller by specifying it in `hci_dev` configuration setting of the add-on.
+By default, flicd is going to use `hci0` bluetooth controller. If you have multiple bluetooth controllers you can configure flicd to use another controller by specifying it in `hci_dev` configuration setting of the app.
 
 ```json
 {
@@ -33,7 +33,7 @@ By default, flicd is going to use `hci0` bluetooth controller. If you have multi
 }
 ```
 
-After starting the flicd add-on, you might need to restart Home Assistant.
+After starting the flicd app, you might need to restart Home Assistant.
 Your flic buttons should be detected automatically if you keep pressing the button.
 
 For more information, check the Home Assistant Forum at https://community.home-assistant.io/search?q=flicd or check the other community support channels at https://www.home-assistant.io/help/
@@ -49,7 +49,7 @@ avahi-reflector to bridge mDNS.
 ## keepalived
 
 [osixia/docker-keepalived](https://github.com/osixia/docker-keepalived) packaged
-as a Home Assistant addon.
+as a Home Assistant app.
 
 ## picamera
 
@@ -61,7 +61,7 @@ Expose your raspicam.
 
 ## Tailscale
 
-[Tailscale](https://tailscale.com) VPN service. This addon was originally published [here](https://github.com/tsujamin/hass-addons/tree/main/tailscale).
+[Tailscale](https://tailscale.com) VPN service. This app was originally published [here](https://github.com/tsujamin/hass-addons/tree/main/tailscale).
 
 ## Zabbix Agent
 

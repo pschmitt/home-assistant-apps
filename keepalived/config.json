@@ -1,6 +1,6 @@
 {
   "name": "keepalived",
-  "version": "1.14",
+  "version": "1.15",
   "slug": "keepalived",
   "description": "Keepalived",
   "arch": [
@@ -13,7 +13,7 @@
   "privileged": [
     "NET_ADMIN"
   ],
-  "image": "pschmitt/home-assistant-addon-{arch}-keepalived",
+  "image": "ghcr.io/pschmitt/{arch}-home-assistant-app-keepalived",
   "options": {
     "interface": "eth0",
     "password": "changeme",

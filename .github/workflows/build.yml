@@ -4,41 +4,35 @@ on:
   push:
   workflow_dispatch:
   schedule:
-    - cron:  '20 3 * * *'
+    - cron: '20 3 * * *'
+
+permissions:
+  contents: read
+  id-token: write
+  packages: write
 
 jobs:
   build:
-    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        addon:
-          - avahi-reflector
-          - flicd
-          - keepalived
-          - picamera
-          - tailscale
-          - zabbix-agent
-          - zabbix-agent2
-        arch:
-          - aarch64
-          - amd64
-        exclude:
-          - addon: picamera
-            arch: amd64
-
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@master
-        with:
-          ref: ${{ github.ref }}
-
-      - name: Docker login
-        uses: azure/docker-login@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Build ${{ matrix.addon }} - ${{ matrix.arch }}
-        run: |
-          ./build.sh ${{ matrix.addon }} ${{ matrix.arch }}
+        include:
+          - app: avahi-reflector
+            architectures: '["aarch64", "amd64"]'
+          - app: flicd
+            architectures: '["aarch64", "amd64"]'
+          - app: keepalived
+            architectures: '["aarch64", "amd64"]'
+          - app: picamera
+            architectures: '["aarch64"]'
+          - app: tailscale
+            architectures: '["aarch64", "amd64"]'
+          - app: zabbix-agent
+            architectures: '["aarch64", "amd64"]'
+          - app: zabbix-agent2
+            architectures: '["aarch64", "amd64"]'
+    uses: ./.github/workflows/build-app.yml
+    with:
+      app: ${{ matrix.app }}
+      architectures: ${{ matrix.architectures }}
+    secrets: inherit

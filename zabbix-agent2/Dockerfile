@@ -7,7 +7,7 @@ FROM ${BUILD_BASE_IMAGE} as builder
 FROM alpine:edge
 
 LABEL org.opencontainers.image.authors="Philipp Schmitt <philipp@schmitt.co>, Lukas Magauer <lukas@magauer.eu>" \
-      org.opencontainers.image.url="https://github.com/pschmitt/home-assistant-addons/tree/main/zabbix-agent2" \
+      org.opencontainers.image.url="https://github.com/pschmitt/home-assistant-apps/tree/main/zabbix-agent2" \
       org.opencontainers.image.title="Zabbix Agent 2 image for Home Assistant Add-on" \
       org.opencontainers.image.base.name="alpine"
 

@@ -4,7 +4,7 @@ ARG BUILD_ARCH
 ARG BUILD_VERSION
 
 LABEL org.opencontainers.image.authors="Philipp Schmitt <philipp@schmitt.co>, Lukas Magauer <lukas@magauer.eu>" \
-      org.opencontainers.image.url="https://github.com/pschmitt/home-assistant-addons/tree/main/zabbix-agent" \
+      org.opencontainers.image.url="https://github.com/pschmitt/home-assistant-apps/tree/main/zabbix-agent" \
       org.opencontainers.image.title="Zabbix Agent image for Home Assistant Add-on" \
       org.opencontainers.image.base.name="alpine"
 

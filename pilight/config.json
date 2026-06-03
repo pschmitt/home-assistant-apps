@@ -1,11 +1,11 @@
 {
-  "image": "pschmitt/home-assistant-addon-{arch}-pilight",
+  "image": "ghcr.io/pschmitt/{arch}-home-assistant-app-pilight",
   "arch": [
     "amd64",
     "aarch64"
   ],
   "name": "pilight",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "slug": "pilight",
   "description": "Pilight server",
   "startup": "services",

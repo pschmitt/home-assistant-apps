@@ -34,7 +34,7 @@ jobs:
           commit-message: "Update Tailscale to latest version"
           title: "chore: Update Tailscale to latest version"
           body: |
-            Automated update of Tailscale addon.
+            Automated update of Tailscale app.
 
             Changes:
             - Updated `tailscale/build.json` with new version

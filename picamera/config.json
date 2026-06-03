@@ -1,10 +1,10 @@
 {
   "name": "picamera",
-  "image": "pschmitt/home-assistant-addon-{arch}-picamera",
+  "image": "ghcr.io/pschmitt/{arch}-home-assistant-app-picamera",
   "arch": [
     "aarch64"
   ],
-  "version": "1.4.0",
+  "version": "1.4.1",
   "slug": "picamera",
   "description": "Expose your raspicam",
   "startup": "application",

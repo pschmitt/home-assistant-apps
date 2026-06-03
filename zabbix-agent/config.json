@@ -1,9 +1,9 @@
 {
   "name": "Zabbix Agent",
-  "version": "1.7.1",
+  "version": "1.7.2",
   "slug": "zabbix-agent",
   "description": "Zabbix Network Monitoring Agent",
-  "url": "https://github.com/pschmitt/home-assistant-addons/tree/main/zabbix-agent",
+  "url": "https://github.com/pschmitt/home-assistant-apps/tree/main/zabbix-agent",
   "arch": [
     "aarch64",
     "amd64"
@@ -15,7 +15,7 @@
   "ports": {
     "10050/tcp": 10050
   },
-  "image": "pschmitt/home-assistant-addon-{arch}-zabbix-agent",
+  "image": "ghcr.io/pschmitt/{arch}-home-assistant-app-zabbix-agent",
   "options": {
     "server": "zabbix-server.local",
     "serveractive": "zabbix-server.local",
