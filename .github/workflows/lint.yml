@@ -28,7 +28,7 @@ jobs:
             https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64
           chmod +x /usr/local/bin/hadolint
       - name: Lint
-        run: hadolint "${{ matrix.app }}/Dockerfile"
+        run: hadolint --config "$GITHUB_WORKSPACE/.hadolint.yaml" "${{ matrix.app }}/Dockerfile"
 
   shellcheck:
     name: ShellCheck
