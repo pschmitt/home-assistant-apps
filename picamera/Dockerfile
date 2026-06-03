@@ -6,8 +6,8 @@ ARG BUILD_VERSION
 LABEL maintainer="Philipp Schmitt <philipp@schmitt.co>"
 
 RUN apt-get update && \
-    apt-get install -y jq && \
-    READTHEDOCS=True pip3 install picamera && \
+    apt-get install -y --no-install-recommends jq && \
+    READTHEDOCS=True pip3 install --no-cache-dir picamera && \
     rm -rf /var/lib/apt/lists/*
 
 COPY web_streaming.py /web_streaming.py

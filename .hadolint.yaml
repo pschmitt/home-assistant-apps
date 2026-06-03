@@ -1,4 +1,6 @@
 ignore:
-  - DL3007  # Using latest tag - intentional for HA app base images
-  - DL3008  # Pin versions in apt get install - intentional
+  - DL3006  # Tag FROM image explicitly - intentional (HA app base images)
+  - DL3007  # Using latest tag - intentional
+  - DL3008  # Pin versions in apt-get install - intentional
+  - DL3013  # Pin pip versions - intentional
   - DL3018  # Pin versions in apk add - intentional

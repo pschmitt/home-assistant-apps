@@ -13,8 +13,7 @@ RUN apk add --no-cache bash jq iptables ip6tables
 # Download and install tailscale to /bin from
 # https://pkgs.tailscale.com/stable/#static
 COPY install.sh /
-RUN chmod a+x /install.sh
-RUN /install.sh ${BUILD_ARCH} ${TAILSCALE_VERSION}
+RUN chmod a+x /install.sh && /install.sh ${BUILD_ARCH} ${TAILSCALE_VERSION}
 
 COPY run.sh /run.sh
 RUN chmod a+x /run.sh

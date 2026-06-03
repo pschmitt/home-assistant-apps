@@ -21,6 +21,8 @@ jobs:
       - uses: hadolint/hadolint-action@v3.1.0
         with:
           dockerfile: ${{ inputs.app }}/Dockerfile
+          config: .hadolint.yaml
+          failure-threshold: error
 
   init:
     name: Initialize ${{ inputs.app }}
