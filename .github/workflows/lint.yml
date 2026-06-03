@@ -6,8 +6,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  lint:
-    name: Lint ${{ matrix.app }}
+  hadolint:
+    name: Hadolint ${{ matrix.app }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -27,3 +27,13 @@ jobs:
           dockerfile: ${{ matrix.app }}/Dockerfile
           config: .hadolint.yaml
           failure-threshold: error
+
+  shellcheck:
+    name: ShellCheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@2.0.0
+        with:
+          severity: error
