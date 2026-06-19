@@ -21,7 +21,7 @@ jobs:
       version: ${{ steps.version.outputs.version }}
       extra_build_args: ${{ steps.build_args.outputs.extra_build_args }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Read version
         id: version
@@ -61,7 +61,7 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJSON(needs.init.outputs.matrix) }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Build image
         uses: home-assistant/builder/actions/build-image@2026.03.2
