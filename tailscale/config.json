@@ -1,7 +1,7 @@
 {
   "image": "ghcr.io/pschmitt/{arch}-home-assistant-app-tailscale",
   "name": "Tailscale",
-  "version": "1.98.4",
+  "version": "1.98.8",
   "slug": "tailscale",
   "description": "Best VPN Service for Secure Networks",
   "url": "https://github.com/pschmitt/home-assistant-apps/tree/main/tailscale",
