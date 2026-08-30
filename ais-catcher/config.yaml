@@ -1,0 +1,68 @@
+name: AIS-catcher
+version: 0.1.0
+slug: ais-catcher
+description: Receive and share AIS traffic with an RTL-SDR and AIS-catcher
+url: https://github.com/pschmitt/home-assistant-apps/tree/main/ais-catcher
+arch:
+  - amd64
+  - aarch64
+startup: application
+boot: auto
+stage: experimental
+usb: true
+ingress: true
+ingress_port: 8100
+ingress_stream: true
+panel_icon: mdi:ship-wheel
+panel_title: AIS-catcher
+timeout: 30
+
+options:
+  hardware_required: true
+  receiver:
+    device: auto
+    gain: auto
+    ppm: 0
+    rtlagc: false
+    sample_rate: 1536000
+    bandwidth: 192000
+    channel: AB
+  web:
+    enabled: true
+  udp_outputs: []
+  tcp_outputs: []
+  aishub:
+    enabled: false
+    host: ""
+    port: 0
+  aiscatcher_share:
+    enabled: false
+    key: ""
+  log_level: info
+
+schema:
+  hardware_required: bool
+  receiver:
+    device: str
+    gain: str
+    ppm: int(-150,150)
+    rtlagc: bool
+    sample_rate: int(12500,12288000)
+    bandwidth: int(0,1000000)
+    channel: list(AB|CD)
+  web:
+    enabled: bool
+  udp_outputs:
+    - host: str
+      port: int(1,65535)
+  tcp_outputs:
+    - host: str
+      port: int(1,65535)
+  aishub:
+    enabled: bool
+    host: str
+    port: int(0,65535)
+  aiscatcher_share:
+    enabled: bool
+    key: password
+  log_level: list(debug|info|warning|error|critical)

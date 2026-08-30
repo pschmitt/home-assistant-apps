@@ -4,6 +4,14 @@
 
 Home Assistant apps by Philipp Schmitt
 
+## AIS-catcher
+
+The [`ais-catcher/`](ais-catcher/) app receives AIS traffic with an RTL-SDR
+and the upstream AIS-catcher decoder. It supports Home Assistant ingress,
+native NMEA outputs, AISHub, and optional AIS-catcher community sharing. An
+explicit no-hardware development mode is available for validation before an
+SDR is installed.
+
 Add to Home Assistant using the repository url:
 https://github.com/pschmitt/home-assistant-apps
 

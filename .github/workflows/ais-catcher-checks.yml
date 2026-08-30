@@ -1,0 +1,52 @@
+name: AIS-catcher checks
+
+on:
+  push:
+    paths:
+      - ais-catcher/**
+      - .github/workflows/ais-catcher-checks.yml
+  pull_request:
+    paths:
+      - ais-catcher/**
+      - .github/workflows/ais-catcher-checks.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  configuration:
+    name: Configuration and shell checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install YAML validator
+        run: sudo apt-get update && sudo apt-get install --yes yq
+      - name: Run checks
+        run: |
+          ./ais-catcher/tests/check.sh
+          shellcheck ais-catcher/run.sh ais-catcher/tests/check.sh
+
+  image:
+    name: Build image without hardware
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build amd64 image
+        run: docker build --build-arg BUILD_ARCH=amd64 --tag local/ais-catcher:test ais-catcher
+      - name: Start no-hardware mode
+        run: |
+          docker run --detach --name ais-catcher-test \
+            --publish 8100:8100 \
+            --volume "$PWD/ais-catcher/tests/options/no-hardware.json:/data/options.json:ro" \
+            local/ais-catcher:test
+          trap 'docker logs ais-catcher-test; docker rm --force ais-catcher-test' EXIT
+          for attempt in {1..30}
+          do
+            if curl --fail --silent http://127.0.0.1:8100/ >/dev/null
+            then
+              exit 0
+            fi
+            sleep 1
+          done
+          exit 1

@@ -1,0 +1,9 @@
+diff --git a/Source/IO/Network.cpp b/Source/IO/Network.cpp
+--- a/Source/IO/Network.cpp
++++ b/Source/IO/Network.cpp
+@@ -428,1 +428,1 @@
+-			ss << ", uuid: " << uuid;
++			ss << ", uuid: [redacted]";
+@@ -590,1 +590,1 @@
+-			ss << ", uuid: " << uuid;
++			ss << ", uuid: [redacted]";

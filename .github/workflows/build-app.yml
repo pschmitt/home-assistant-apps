@@ -26,7 +26,13 @@ jobs:
       - name: Read version
         id: version
         run: |
-          echo "version=$(jq -r .version '${{ inputs.app }}/config.json')" >> "$GITHUB_OUTPUT"
+          if [[ -f '${{ inputs.app }}/config.json' ]]
+          then
+            version=$(jq -r .version '${{ inputs.app }}/config.json')
+          else
+            version=$(ruby -e 'require "yaml"; puts YAML.load_file(ARGV[0])["version"]' '${{ inputs.app }}/config.yaml')
+          fi
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
 
       - name: Read extra build args from build.json
         id: build_args

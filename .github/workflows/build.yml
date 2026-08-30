@@ -32,6 +32,8 @@ jobs:
             architectures: '["aarch64", "amd64"]'
           - app: zabbix-agent2
             architectures: '["aarch64", "amd64"]'
+          - app: ais-catcher
+            architectures: '["aarch64", "amd64"]'
     uses: ./.github/workflows/build-app.yml
     with:
       app: ${{ matrix.app }}
