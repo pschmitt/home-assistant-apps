@@ -30,7 +30,7 @@ jobs:
           then
             version=$(jq -r .version '${{ inputs.app }}/config.json')
           else
-            version=$(ruby -e 'require "yaml"; puts YAML.load_file(ARGV[0])["version"]' '${{ inputs.app }}/config.yaml')
+            version=$(ruby -e 'require "yaml"; puts YAML.safe_load(File.read(ARGV[0]), aliases: false).fetch("version")' '${{ inputs.app }}/config.yaml')
           fi
           echo "version=${version}" >> "$GITHUB_OUTPUT"
 

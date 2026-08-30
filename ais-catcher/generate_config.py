@@ -100,7 +100,8 @@ def validate_options(options: dict[str, Any]) -> None:
     bandwidth = require_type(receiver["bandwidth"], int, "receiver.bandwidth")
     if not 0 <= bandwidth <= 1000000:
         raise fail("receiver.bandwidth must be between 0 and 1000000")
-    if receiver["channel"] not in {"AB", "CD"}:
+    channel = require_type(receiver["channel"], str, "receiver.channel")
+    if channel not in {"AB", "CD"}:
         raise fail("receiver.channel must be AB or CD")
 
     web = require_type(options["web"], dict, "web")

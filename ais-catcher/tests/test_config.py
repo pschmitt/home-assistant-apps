@@ -109,9 +109,10 @@ class ConfigGenerationTests(unittest.TestCase):
                 text=True,
                 check=False,
             )
+            output_exists = output.exists()
         self.assertEqual(process.returncode, 2)
         self.assertIn("receiver.ppm", process.stderr)
-        self.assertFalse(output.exists())
+        self.assertFalse(output_exists)
 
     def test_enabled_aishub_requires_endpoint(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
@@ -133,8 +134,10 @@ class ConfigGenerationTests(unittest.TestCase):
                 text=True,
                 check=False,
             )
+            output_exists = output.exists()
         self.assertEqual(process.returncode, 2)
         self.assertIn("AISHub", process.stderr)
+        self.assertFalse(output_exists)
 
     def test_invalid_community_key_fails_before_writing_configuration(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
@@ -156,9 +159,35 @@ class ConfigGenerationTests(unittest.TestCase):
                 text=True,
                 check=False,
             )
+            output_exists = output.exists()
         self.assertEqual(process.returncode, 2)
         self.assertIn("must be a UUID", process.stderr)
-        self.assertFalse(output.exists())
+        self.assertFalse(output_exists)
+
+    def test_non_string_channel_fails_as_configuration_error(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            options = pathlib.Path(temporary_directory) / "options.json"
+            output = pathlib.Path(temporary_directory) / "config.json"
+            base = json.loads((OPTIONS / "minimal.json").read_text(encoding="utf-8"))
+            base["receiver"]["channel"] = []
+            options.write_text(json.dumps(base), encoding="utf-8")
+            process = subprocess.run(
+                [
+                    "python3",
+                    str(GENERATOR),
+                    "--options",
+                    str(options),
+                    "--output",
+                    str(output),
+                ],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            output_exists = output.exists()
+        self.assertEqual(process.returncode, 2)
+        self.assertIn("receiver.channel", process.stderr)
+        self.assertFalse(output_exists)
 
 
 if __name__ == "__main__":
