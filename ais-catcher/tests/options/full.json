@@ -1,0 +1,37 @@
+{
+  "hardware_required": true,
+  "receiver": {
+    "device": "NESDR-TEST-SERIAL",
+    "gain": "32.8",
+    "ppm": -3,
+    "rtlagc": true,
+    "sample_rate": 1536000,
+    "bandwidth": 192000,
+    "channel": "AB"
+  },
+  "web": {
+    "enabled": true
+  },
+  "udp_outputs": [
+    {
+      "host": "192.0.2.10",
+      "port": 10110
+    }
+  ],
+  "tcp_outputs": [
+    {
+      "host": "ais-consumer.example",
+      "port": 4001
+    }
+  ],
+  "aishub": {
+    "enabled": true,
+    "host": "aishub.example",
+    "port": 12345
+  },
+  "aiscatcher_share": {
+    "enabled": true,
+    "key": "123e4567-e89b-12d3-a456-426614174000"
+  },
+  "log_level": "debug"
+}

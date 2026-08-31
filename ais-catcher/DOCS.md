@@ -1,0 +1,278 @@
+# AIS-catcher Home Assistant app
+
+## Installation
+
+In Home Assistant, open **Settings → Add-ons → Add-on Store**, select the
+three-dot menu, choose **Repositories**, and add:
+
+```text
+https://github.com/pschmitt/home-assistant-apps
+```
+
+Install **AIS-catcher**. The app is built for `amd64` and `aarch64`, which
+includes generic x86-64 systems and 64-bit Raspberry Pi Home Assistant OS
+installations. The add-on has no public port mapping; its web viewer is
+available through Home Assistant ingress.
+
+## Basic configuration
+
+The default options are suitable as a starting point:
+
+```yaml
+hardware_required: true
+receiver:
+  device: auto
+  gain: auto
+  ppm: 0
+  rtlagc: false
+  sample_rate: 1536000
+  bandwidth: 192000
+  channel: AB
+web:
+  enabled: true
+udp_outputs: []
+tcp_outputs: []
+aishub:
+  enabled: false
+  host: ""
+  port: 0
+aiscatcher_share:
+  enabled: false
+  key: ""
+log_level: info
+```
+
+`receiver.device` is `auto` by default. For multiple RTL-SDR devices, set it
+to the serial number printed by the startup enumeration. `gain` is either
+`auto` or a tuner gain in dB from 0 to 50. Start with `auto` and adjust only
+after looking at the signal-level and message statistics in the web viewer.
+`ppm` accepts -150 through 150. `channel: AB` covers AIS1 and AIS2 with one
+RTL-SDR; `CD` is available for the alternate channel pair supported by
+AIS-catcher.
+
+`udp_outputs` and `tcp_outputs` are lists of NMEA destinations, for example:
+
+```yaml
+udp_outputs:
+  - host: 192.0.2.10
+    port: 10110
+tcp_outputs:
+  - host: ais-consumer.example
+    port: 4001
+```
+
+These are AIS-catcher TCP clients, not TCP listeners. AISHub is also a native
+AIS-catcher UDP NMEA output. Enter the host and port supplied by AISHub; the
+app never fetches AISstream or any other public AIS API.
+
+The `aiscatcher_share` option enables the upstream `sharing` / `sharing_key`
+configuration. Register the station at [aiscatcher.org](https://www.aiscatcher.org/)
+to obtain a sharing key. Sharing is disabled by default.
+
+The key field uses Home Assistant's `password` schema type and is not printed
+by the startup script. It is still present in Supervisor's `/data/options.json`
+and in the generated `/data/aiscatcher.json` (mode `0600`), so this is not a
+replacement for a separate secrets vault. Do not paste it into bug reports or
+share generated configuration files.
+
+## Upstream and Home Assistant compatibility
+
+This app currently builds AIS-catcher [v0.70](https://github.com/jvde-github/AIS-catcher/releases/tag/v0.70)
+from a pinned commit and source archive checksum. The generator uses the
+upstream version-1 JSON configuration format: `receiver` selects `rtlsdr`,
+`udp` and `tcp` carry NMEA outputs, `server` enables the viewer, and `sharing`
+with `sharing_key` enables the upstream community feed. The image compiles
+only the RTL-SDR, web viewer, OpenSSL, and zlib integrations to keep the image
+focused. It also applies one small security patch to the upstream network
+startup messages so a configured community UUID is logged as `[redacted]`.
+The sharing protocol and wire format remain upstream AIS-catcher behavior.
+
+The add-on metadata is in the current `config.yaml` format. `build.yaml` is
+retained as an empty compatibility file for this repository; the pinned base
+images and build settings are intentionally declared in the Dockerfile.
+
+## Connecting and checking the NESDR Smart v5
+
+Connect the NESDR directly to the Home Assistant OS host, or use a powered USB
+hub if the host cannot provide stable power. The app sets `usb: true`, which
+maps Home Assistant OS's raw `/dev/bus/usb` tree into the container and allows
+plug-and-play enumeration. No vendor/product ID is hardcoded; AIS-catcher
+selects the first compatible RTL-SDR or the configured serial number.
+
+After connecting the receiver:
+
+1. Check host hardware from the Home Assistant CLI or Terminal/SSH app with
+   `ha hardware info` where supported. For a diagnostic host shell, `lsusb`
+   and `dmesg`/`journalctl -k` can confirm USB enumeration.
+2. Restart the app and inspect its log. Hardware mode runs
+   `AIS-catcher -l JSON on` first, then prints AIS-catcher's device initialization
+   messages.
+3. A successful startup identifies an RTL-SDR and continues into the receiver
+   loop. `cannot find device`, `no devices available`, `cannot open device`,
+   or `access denied` indicate a host/USB/driver problem, not a reception
+   result.
+4. Open the app from the Home Assistant sidebar and check the receiver,
+   signal, and message statistics. A map with no vessels is not by itself
+   proof that the radio is broken; continue with the antenna and frequency
+   checks below.
+
+App logs can be viewed in the UI or with the Home Assistant CLI:
+
+```sh
+ha addons logs ais-catcher
+ha addons info ais-catcher
+```
+
+For a repository-installed copy whose Supervisor slug is prefixed with
+`local_`, use `ha addons logs local_ais-catcher` instead. The exact slug is
+shown by `ha addons list` or in the add-on information page.
+
+## Antenna and reception
+
+AIS is received in the maritime VHF band. Use a vertically polarized antenna
+designed for approximately 162 MHz, installed as high and unobstructed as is
+practical, with a short, good-quality 50-ohm coax run. A marine VHF antenna
+with an appropriate splitter can work, but the splitter must protect the
+receiver from transmitter power. Do not connect a transmitting radio directly
+to the NESDR.
+
+Once the receiver is initialized, verify both AIS channels:
+
+* AIS1: **161.975 MHz**
+* AIS2: **162.025 MHz**
+
+AIS-catcher's `AB` mode is intended to receive both channels around 162 MHz.
+Use the web viewer's signal/drift information to tune PPM and gain. Excessive
+gain can overload the tuner just as readily as too little gain can hide weak
+signals.
+
+## Web UI and ingress
+
+The built-in AIS-catcher web viewer listens on container port 8100 when
+`web.enabled` is true. Home Assistant ingress proxies that port and handles
+Home Assistant authentication. No host port is published by this app.
+
+Setting `web.enabled` to `false` deliberately disables the viewer; the
+sidebar ingress entry will then be unavailable until it is enabled again.
+
+Ingress has only been validated structurally in this repository. Its behavior
+through a particular Supervisor/Frontend version should be checked on the
+target Home Assistant OS system.
+
+## Development without an SDR
+
+The `hardware_required: false` option is specifically for development and
+configuration checks. In this mode, the generated configuration has an
+AIS-catcher `udpserver` receiver bound to `127.0.0.1:10110`. It waits for
+NMEA input but does not create a radio source and does not invent traffic.
+
+Build and run it on an amd64 development machine:
+
+```sh
+docker build --build-arg BUILD_ARCH=amd64 -t local/ais-catcher:dev ais-catcher
+docker run --rm --name ais-catcher-dev \
+  --publish 8100:8100 \
+  --volume "$PWD/ais-catcher/tests/options/no-hardware.json:/data/options.json:ro" \
+  local/ais-catcher:dev
+```
+
+Open `http://127.0.0.1:8100`. The interface should load and show that no
+receiver messages are arriving. This tests the image, options parsing, config
+generation, and web process without claiming SDR or AIS success.
+
+To inspect a generated configuration without Docker:
+
+```sh
+python3 ais-catcher/generate_config.py \
+  --options ais-catcher/tests/options/full.json \
+  --output /tmp/aiscatcher.json \
+  --print-redacted
+```
+
+The normal production mode remains `hardware_required: true`. Without the
+physical device, AIS-catcher will report that no compatible device is
+available and exit; this is intentional and makes a missing receiver visible
+instead of creating fake reception.
+
+## AISHub and community sharing
+
+For AISHub, obtain the station endpoint from AISHub and set `aishub.enabled`,
+`aishub.host`, and `aishub.port`. AIS-catcher sends the locally decoded raw
+NMEA output directly to that UDP endpoint. With no SDR, no AISHub packets are
+generated by this app.
+
+For the community feed, register at aiscatcher.org, put the supplied key in
+`aiscatcher_share.key`, and set `aiscatcher_share.enabled` to `true`. The
+upstream AIS-catcher community mechanism is used; this app does not implement
+or proxy that protocol.
+
+## Troubleshooting
+
+### No RTL-SDR detected
+
+Check `ha hardware info`, then inspect kernel USB logs. Restart the app after
+plugging in the dongle. In the app log, AIS-catcher's `-l JSON on` output should
+include the RTL-SDR. If several devices
+are present, use the exact serial number in `receiver.device`.
+
+### Permission or access failure
+
+Confirm that the app is using the image from this repository and that its
+protection setting has not been changed in a way that removes normal app
+device mapping. The app requires the USB mapping supplied by `usb: true`; it
+does not require full privileged mode. Replug the device and restart the app.
+
+### The kernel DVB driver claimed the RTL2832 device
+
+On a diagnostic HAOS host shell, check `lsmod` and kernel logs for
+`dvb_usb_rtl28xxu`, `rtl2832`, or related modules. Temporarily unload the
+modules only when the host permits it, for example with `modprobe -r` after
+stopping any service using the tuner. If the module must be blocked across
+reboots, use the HAOS-supported `CONFIG/modprobe` configuration mechanism and
+follow the current HAOS documentation; do not edit the container.
+
+### No AIS packets received
+
+First confirm device initialization, then verify the antenna is connected and
+vertical, the coax and connectors are sound, and there are vessels within
+radio line of sight. Try `gain: auto`, then modest fixed gain values. Verify
+that PPM is reasonable and that `channel: AB` is selected. Use AIS-catcher's
+web statistics and signal/drift plots; an empty map without nearby AIS traffic
+is not conclusive.
+
+### Bad gain
+
+Overload may appear as a high noise floor and fewer valid messages. Weak gain
+can produce sporadic or distant-only reception. Start with `auto` and change
+one setting at a time while watching valid message counts and signal levels.
+
+### Bad antenna or reception
+
+Raise and clear the antenna, keep coax short, remove unnecessary splitters,
+and compare reception at different times. AIS coverage is strongly dependent
+on local terrain, buildings, antenna height, and nearby vessel traffic.
+
+### Web UI unavailable
+
+Ensure `web.enabled: true`, restart the app, and check that AIS-catcher logged
+the web viewer startup on port 8100. Use the add-on page's **Open Web UI** or
+sidebar ingress link; do not expect a host port because none is published.
+For local Docker testing, publish `8100:8100` as shown above.
+
+## Hardware validation checklist
+
+The following items are intentionally unchecked. They require the physical
+NESDR Smart v5 and must not be marked complete based on image builds or config
+tests:
+
+- [ ] Verify USB enumeration on the Home Assistant OS host.
+- [ ] Verify AIS-catcher detects the RTL-SDR.
+- [ ] Verify AIS-catcher initializes and opens the device.
+- [ ] Determine an appropriate tuner gain.
+- [ ] Verify reception on AIS1, 161.975 MHz.
+- [ ] Verify reception on AIS2, 162.025 MHz.
+- [ ] Confirm vessels appear in AIS-catcher.
+- [ ] Confirm raw NMEA output through a configured UDP or TCP destination.
+- [ ] Confirm AISHub receives the station feed, if enabled.
+- [ ] Confirm ingress remains functional during active reception.
+- [ ] Observe CPU and memory usage on Home Assistant OS during reception.

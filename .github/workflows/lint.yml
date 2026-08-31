@@ -20,6 +20,7 @@ jobs:
           - app: tailscale
           - app: zabbix-agent
           - app: zabbix-agent2
+          - app: ais-catcher
     steps:
       - uses: actions/checkout@v7
       - name: Install hadolint

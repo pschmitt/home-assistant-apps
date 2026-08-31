@@ -1,0 +1,3 @@
+# Home Assistant Supervisor no longer consumes build.yaml for modern apps.
+# The Dockerfile contains the explicit, pinned base image and build arguments.
+{}
