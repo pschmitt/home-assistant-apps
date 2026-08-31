@@ -45,7 +45,7 @@ main() {
     return 2
   fi
 
-  # shellcheck source=/usr/lib/bashio/bashio.sh
+  # shellcheck disable=SC1091
   if ! source /usr/lib/bashio/bashio.sh
   then
     printf 'AIS-catcher: cannot load Home Assistant service helpers.\n' >&2
