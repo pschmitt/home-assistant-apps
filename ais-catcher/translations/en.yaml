@@ -5,15 +5,15 @@ configuration:
     description: >-
       Keep enabled for normal reception. Disable only for development without
       an SDR; this does not generate or simulate AIS messages.
+  device:
+    name: Device
+    description: >-
+      Select the RTL-SDR USB receiver. The list is provided by Home Assistant
+      OS and is refreshed when USB devices are connected or removed.
   receiver:
     name: Receiver
     description: Configure the RTL-SDR receiver and AIS channels.
     fields:
-      device:
-        name: RTL-SDR device
-        description: >-
-          Use auto to select the first compatible receiver, or enter its
-          AIS-catcher serial number when multiple SDRs are connected.
       gain:
         name: Tuner gain
         description: Use auto initially, or enter a fixed gain in dB from 0 to 50.

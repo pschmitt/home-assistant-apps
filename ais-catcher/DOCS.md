@@ -21,8 +21,8 @@ The default options are suitable as a starting point:
 
 ```yaml
 hardware_required: true
+device: /dev/bus/usb/001/008
 receiver:
-  device: auto
   gain: auto
   ppm: 0
   rtlagc: false
@@ -43,11 +43,12 @@ aiscatcher_share:
 log_level: info
 ```
 
-`receiver.device` is `auto` by default. This is intentionally a text field:
-Home Assistant's app `device` selector lists `/dev` device paths, while an
-RTL-SDR accessed through `usb: true` is selected by AIS-catcher's libusb
-serial number. For multiple RTL-SDR devices, set it to the serial number
-printed by the startup enumeration. `gain` is either
+`device` is an optional Home Assistant device selector filtered to USB
+devices. Select the NESDR's `/dev/bus/usb/...` entry when multiple USB devices
+are present. AIS-catcher uses the selected USB device's serial number
+internally, so the generated configuration remains stable across the app
+container's device enumeration order. If no device is selected, AIS-catcher
+automatically selects the first compatible RTL-SDR. `gain` is either
 `auto` or a tuner gain in dB from 0 to 50. Start with `auto` and adjust only
 after looking at the signal-level and message statistics in the web viewer.
 `ppm` accepts -150 through 150. `channel: AB` covers AIS1 and AIS2 with one
@@ -102,7 +103,8 @@ Connect the NESDR directly to the Home Assistant OS host, or use a powered USB
 hub if the host cannot provide stable power. The app sets `usb: true`, which
 maps Home Assistant OS's raw `/dev/bus/usb` tree into the container and allows
 plug-and-play enumeration. No vendor/product ID is hardcoded; AIS-catcher
-selects the first compatible RTL-SDR or the configured serial number.
+selects the first compatible RTL-SDR or the serial number resolved from the
+selected USB device.
 
 After connecting the receiver:
 
@@ -218,7 +220,9 @@ or proxy that protocol.
 Check `ha hardware info`, then inspect kernel USB logs. Restart the app after
 plugging in the dongle. In the app log, AIS-catcher's `-l JSON on` output should
 include the RTL-SDR. If several devices
-are present, use the exact serial number in `receiver.device`.
+are present, select the intended `/dev/bus/usb/...` entry in the app
+configuration. The app resolves that path to the radio's serial number before
+starting AIS-catcher.
 
 ### Permission or access failure
 

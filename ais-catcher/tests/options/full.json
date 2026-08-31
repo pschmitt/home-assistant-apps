@@ -1,7 +1,7 @@
 {
   "hardware_required": true,
+  "device": "NESDR-TEST-SERIAL",
   "receiver": {
-    "device": "NESDR-TEST-SERIAL",
     "gain": "32.8",
     "ppm": -3,
     "rtlagc": true,

@@ -1,5 +1,6 @@
 {
-  "hardware_required": false,
+  "hardware_required": true,
+  "device": "/dev/bus/usb/001/008",
   "receiver": {
     "gain": "auto",
     "ppm": 0,
@@ -19,8 +20,8 @@
     "port": 0
   },
   "aiscatcher_share": {
-    "enabled": true,
-    "key": "123e4567-e89b-12d3-a456-426614174000"
+    "enabled": false,
+    "key": ""
   },
   "log_level": "info"
 }

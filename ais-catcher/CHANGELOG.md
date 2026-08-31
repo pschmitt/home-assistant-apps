@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.2
+
+- Use Home Assistant's dynamic USB device selector for the RTL-SDR.
+- Resolve the selected USB device path to its AIS-catcher serial number.
+- Preserve compatibility with the pre-0.1.2 manually configured serial option.
+
 ## 0.1.1
 
 - Use the published GHCR image instead of building the app on the Home

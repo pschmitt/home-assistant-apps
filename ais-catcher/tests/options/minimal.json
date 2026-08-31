@@ -1,7 +1,6 @@
 {
   "hardware_required": true,
   "receiver": {
-    "device": "auto",
     "gain": "auto",
     "ppm": 0,
     "rtlagc": false,

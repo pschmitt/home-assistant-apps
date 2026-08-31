@@ -7,6 +7,7 @@ import json
 import pathlib
 import stat
 import subprocess
+import sys
 import tempfile
 import unittest
 
@@ -14,6 +15,8 @@ import unittest
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 GENERATOR = ROOT / "generate_config.py"
 OPTIONS = ROOT / "tests" / "options"
+sys.path.insert(0, str(ROOT))
+import generate_config  # noqa: E402
 
 
 class ConfigGenerationTests(unittest.TestCase):
@@ -70,6 +73,20 @@ class ConfigGenerationTests(unittest.TestCase):
         }])
         self.assertTrue(config["sharing"])
         self.assertEqual(config["sharing_key"], "123e4567-e89b-12d3-a456-426614174000")
+
+    def test_selected_usb_device_resolves_to_ais_catcher_serial(self) -> None:
+        options = json.loads((OPTIONS / "selected-usb.json").read_text(encoding="utf-8"))
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            sysfs_root = pathlib.Path(temporary_directory)
+            usb_device = sysfs_root / "1-8"
+            usb_device.mkdir()
+            (usb_device / "busnum").write_text("001\n", encoding="utf-8")
+            (usb_device / "devnum").write_text("008\n", encoding="utf-8")
+            (usb_device / "serial").write_text("28567980\n", encoding="utf-8")
+            merged = generate_config.merged_options(options)
+            generate_config.validate_options(merged)
+            config = generate_config.build_config(merged, sysfs_root)["config"]
+        self.assertEqual(config["receiver"][0]["serial"], "28567980")
 
     def test_redacted_output_does_not_contain_sharing_key(self) -> None:
         process, output = self.run_generator("full.json", "--print-redacted")

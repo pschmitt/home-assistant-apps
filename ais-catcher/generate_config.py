@@ -16,8 +16,8 @@ from typing import Any
 
 DEFAULTS: dict[str, Any] = {
     "hardware_required": True,
+    "device": None,
     "receiver": {
-        "device": "auto",
         "gain": "auto",
         "ppm": 0,
         "rtlagc": False,
@@ -68,20 +68,33 @@ def merged_options(options: Any) -> dict[str, Any]:
     result = copy.deepcopy(DEFAULTS)
     for key, value in options.items():
         if isinstance(result.get(key), dict) and isinstance(value, dict):
-            result[key].update(value)
+            nested_value = copy.deepcopy(value)
+            nested_value.pop("device", None)
+            result[key].update(nested_value)
         else:
             result[key] = value
+    receiver_options = options.get("receiver")
+    legacy_device = (
+        receiver_options.get("device")
+        if isinstance(receiver_options, dict)
+        else None
+    )
+    if result["device"] is None and legacy_device not in (None, "auto"):
+        result["device"] = legacy_device
     return result
 
 
 def validate_options(options: dict[str, Any]) -> None:
     require_type(options["hardware_required"], bool, "hardware_required")
 
+    device = options["device"]
+    if device is not None:
+        require_type(device, str, "device")
+        if not device.strip():
+            raise fail("device must not be empty")
+
     receiver = require_type(options["receiver"], dict, "receiver")
     require_keys(receiver, RECEIVER_KEYS, "receiver")
-    device = require_type(receiver["device"], str, "receiver.device")
-    if not device.strip():
-        raise fail("receiver.device must not be empty")
     gain = require_type(receiver["gain"], str, "receiver.gain")
     if gain.lower() != "auto":
         try:
@@ -148,7 +161,9 @@ def validate_outputs(outputs: Any, name: str) -> None:
             raise fail(f"{output_name}.port must be between 1 and 65535")
 
 
-def build_config(options: dict[str, Any]) -> dict[str, Any]:
+def build_config(
+    options: dict[str, Any], sysfs_root: pathlib.Path | None = None
+) -> dict[str, Any]:
     receiver_options = options["receiver"]
     if options["hardware_required"]:
         receiver: dict[str, Any] = {
@@ -166,8 +181,8 @@ def build_config(options: dict[str, Any]) -> dict[str, Any]:
                 "bandwidth": receiver_options["bandwidth"],
             },
         }
-        if receiver_options["device"].lower() != "auto":
-            receiver["serial"] = receiver_options["device"]
+        if options["device"] is not None:
+            receiver["serial"] = resolve_usb_serial(options["device"], sysfs_root)
         mode = "hardware"
     else:
         # This is a real AIS-catcher UDP NMEA input, not an SDR simulator. It
@@ -208,6 +223,40 @@ def build_config(options: dict[str, Any]) -> dict[str, Any]:
     if options["aiscatcher_share"]["enabled"]:
         config["sharing_key"] = options["aiscatcher_share"]["key"]
     return {"mode": mode, "log_level": options["log_level"], "config": config}
+
+
+def resolve_usb_serial(device_path: str, sysfs_root: pathlib.Path | None = None) -> str:
+    """Resolve a Supervisor USB device path to the serial AIS-catcher needs."""
+    match = re.fullmatch(r"/dev/bus/usb/(\d{3})/(\d{3})", device_path)
+    if match is None:
+        # Keep accepting the pre-0.1.2 serial form for a one-time migration of
+        # manually maintained options. Supervisor's device selector always
+        # supplies a /dev/bus/usb path.
+        if device_path and not device_path.startswith("/dev/"):
+            return device_path
+        raise fail(
+            "device must be a Supervisor USB path such as "
+            "/dev/bus/usb/001/008"
+        )
+
+    root = sysfs_root or pathlib.Path("/sys/bus/usb/devices")
+    for entry in root.glob("*"):
+        try:
+            bus_number = (entry / "busnum").read_text(encoding="utf-8").strip()
+            device_number = (entry / "devnum").read_text(encoding="utf-8").strip()
+        except OSError:
+            continue
+        if (bus_number, device_number) != match.groups():
+            continue
+        try:
+            serial = (entry / "serial").read_text(encoding="utf-8").strip()
+        except OSError as error:
+            raise fail(f"selected USB device has no readable serial: {device_path}") from error
+        if not serial:
+            raise fail(f"selected USB device has no serial: {device_path}")
+        return serial
+
+    raise fail(f"selected USB device is not present: {device_path}")
 
 
 def redact(config: dict[str, Any]) -> dict[str, Any]:
