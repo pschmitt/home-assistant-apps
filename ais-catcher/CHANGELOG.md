@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.13
+
+- Enable RTL-SDR AGC by default, matching AIS-catcher's documented RTL-SDR
+  starting configuration.
+
 ## 0.1.12
 
 - Import the Supervisor-provided container environment in the s6 service so

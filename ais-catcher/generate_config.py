@@ -19,7 +19,7 @@ DEFAULTS: dict[str, Any] = {
     "receiver": {
         "gain": "auto",
         "ppm": 0,
-        "rtlagc": False,
+        "rtlagc": True,
         "sample_rate": 1536000,
         "bandwidth": 192000,
         "channel": "AB",

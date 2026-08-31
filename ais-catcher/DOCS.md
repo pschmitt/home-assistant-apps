@@ -23,7 +23,7 @@ The default options are suitable as a starting point:
 receiver:
   gain: auto
   ppm: 0
-  rtlagc: false
+  rtlagc: true
   sample_rate: 1536000
   bandwidth: 192000
   channel: AB

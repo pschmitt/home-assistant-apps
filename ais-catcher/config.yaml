@@ -1,5 +1,5 @@
 name: AIS-catcher
-version: 0.1.12
+version: 0.1.13
 slug: ais-catcher
 description: Receive and share AIS traffic with an RTL-SDR and AIS-catcher
 url: https://github.com/pschmitt/home-assistant-apps/tree/main/ais-catcher
@@ -25,7 +25,7 @@ options:
   receiver:
     gain: auto
     ppm: 0
-    rtlagc: false
+    rtlagc: true
     sample_rate: 1536000
     bandwidth: 192000
     channel: AB
