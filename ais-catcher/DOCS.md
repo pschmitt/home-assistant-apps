@@ -36,6 +36,12 @@ web:
 nmea:
   udp_outputs: []
   tcp_outputs: []
+mqtt:
+  enabled: false
+  topic: ais-catcher/ais
+  msgformat: JSON_FULL
+  qos: 0
+  client_id: ais-catcher
 aishub:
   enabled: false
   host: ""
@@ -84,6 +90,38 @@ nmea:
 These are AIS-catcher TCP clients, not TCP listeners. AISHub is also a native
 AIS-catcher UDP NMEA output. Enter the host and port supplied by AISHub; the
 app never fetches AISstream or any other public AIS API.
+
+## MQTT output
+
+The app can publish the locally decoded AIS stream to the Home Assistant MQTT
+broker. Enable MQTT output in the app configuration:
+
+```yaml
+mqtt:
+  enabled: true
+  topic: ais-catcher/ais
+  msgformat: JSON_FULL
+  qos: 0
+  client_id: ais-catcher
+```
+
+The app declares `mqtt:want` and obtains the broker host, port, TLS setting,
+username, and password from Supervisor's MQTT service discovery. Do not enter
+broker credentials in the AIS-catcher options. If no MQTT broker is available,
+the app continues to work while MQTT is disabled; enabling it without a
+discoverable broker is a startup error.
+
+`JSON_FULL` is the recommended format because it includes decoded fields such
+as MMSI, message type, latitude, longitude, speed, and the original NMEA
+sentence. `JSON_NMEA` contains common metadata and the NMEA payload, while
+`NMEA` publishes the raw AIS sentence. AIS-catcher topic templates are
+supported, for example `ais-catcher/vessels/%mmsi%`. MQTT wildcards (`+` and
+`#`) are not valid publish topics.
+
+This publishes only data received and decoded by the local RTL-SDR. It does
+not consume AISstream or another public AIS API. Publishing MQTT messages does
+not automatically create Home Assistant entities; use MQTT triggers, sensors,
+or a dedicated integration if you want to model vessel data in Home Assistant.
 
 The `aiscatcher_share` option enables the upstream `sharing` / `sharing_key`
 configuration. Register the station at [aiscatcher.org](https://www.aiscatcher.org/)
@@ -245,6 +283,21 @@ Confirm that the app is using the image from this repository and that its
 protection setting has not been changed in a way that removes normal app
 device mapping. The app requires the USB mapping supplied by `usb: true`; it
 does not require full privileged mode. Replug the device and restart the app.
+
+### MQTT output unavailable
+
+Confirm that the Mosquitto broker app is installed and running, and that the
+Home Assistant MQTT integration is configured. When MQTT is enabled, the app
+obtains the broker details through Supervisor service discovery. If the broker
+cannot be discovered, the app reports that condition and exits rather than
+silently dropping messages. Keep MQTT disabled until the broker is available.
+
+The generated configuration contains the broker password. Inspect it only
+with redaction enabled:
+
+```sh
+python3 /usr/bin/generate_config.py --print-redacted
+```
 
 ### The kernel DVB driver claimed the RTL2832 device
 

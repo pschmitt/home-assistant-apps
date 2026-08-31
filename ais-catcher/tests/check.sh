@@ -13,6 +13,7 @@ main() {
   python3 -m json.tool "${SCRIPT_DIR}/options/full.json" >/dev/null
   python3 -m json.tool "${SCRIPT_DIR}/options/no-hardware.json" >/dev/null
   python3 -m json.tool "${SCRIPT_DIR}/options/no-hardware-sharing.json" >/dev/null
+  python3 -m json.tool "${SCRIPT_DIR}/options/mqtt.json" >/dev/null
   yq '.' "${APP_DIR}/config.yaml" >/dev/null
 }
 

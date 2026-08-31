@@ -34,6 +34,13 @@ DEFAULTS: dict[str, Any] = {
         "udp_outputs": [],
         "tcp_outputs": [],
     },
+    "mqtt": {
+        "enabled": False,
+        "topic": "ais-catcher/ais",
+        "msgformat": "JSON_FULL",
+        "qos": 0,
+        "client_id": "ais-catcher",
+    },
     "aishub": {"enabled": False, "host": "", "port": 0},
     "aiscatcher_share": {"enabled": False, "key": ""},
     "log_level": "info",
@@ -51,6 +58,7 @@ RECEIVER_KEYS = set(DEFAULTS["receiver"])
 ANTENNA_KEYS = set(DEFAULTS["antenna"])
 WEB_KEYS = set(DEFAULTS["web"])
 NMEA_KEYS = set(DEFAULTS["nmea"])
+MQTT_KEYS = set(DEFAULTS["mqtt"])
 AISHUB_KEYS = set(DEFAULTS["aishub"])
 SHARE_KEYS = set(DEFAULTS["aiscatcher_share"])
 LOG_LEVELS = {"default", "debug", "info", "warning", "error", "critical"}
@@ -147,6 +155,30 @@ def validate_options(options: dict[str, Any]) -> None:
     validate_outputs(nmea["udp_outputs"], "nmea.udp_outputs")
     validate_outputs(nmea["tcp_outputs"], "nmea.tcp_outputs")
 
+    mqtt = require_type(options["mqtt"], dict, "mqtt")
+    require_keys(mqtt, MQTT_KEYS, "mqtt")
+    require_type(mqtt["enabled"], bool, "mqtt.enabled")
+    topic = require_type(mqtt["topic"], str, "mqtt.topic")
+    if not topic.strip():
+        raise fail("mqtt.topic must not be empty")
+    if (
+        topic.startswith("/")
+        or topic.endswith("/")
+        or "//" in topic
+        or "+" in topic
+        or "#" in topic
+    ):
+        raise fail("mqtt.topic must be a relative MQTT topic")
+    msgformat = require_type(mqtt["msgformat"], str, "mqtt.msgformat")
+    if msgformat not in {"NMEA", "JSON_NMEA", "JSON_FULL"}:
+        raise fail("mqtt.msgformat must be NMEA, JSON_NMEA, or JSON_FULL")
+    qos = require_type(mqtt["qos"], int, "mqtt.qos")
+    if not 0 <= qos <= 2:
+        raise fail("mqtt.qos must be between 0 and 2")
+    client_id = require_type(mqtt["client_id"], str, "mqtt.client_id")
+    if not client_id.strip():
+        raise fail("mqtt.client_id must not be empty")
+
     aishub = require_type(options["aishub"], dict, "aishub")
     require_keys(aishub, AISHUB_KEYS, "aishub")
     require_type(aishub["enabled"], bool, "aishub.enabled")
@@ -196,6 +228,7 @@ def require_number(value: Any, name: str) -> float:
 def build_config(
     options: dict[str, Any],
     hardware: bool = True,
+    mqtt_service: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     receiver_options = options["receiver"]
     if hardware:
@@ -262,6 +295,23 @@ def build_config(
     config["sharing"] = options["aiscatcher_share"]["enabled"]
     if options["aiscatcher_share"]["enabled"]:
         config["sharing_key"] = options["aiscatcher_share"]["key"]
+    if options["mqtt"]["enabled"]:
+        if mqtt_service is None:
+            raise fail("MQTT is enabled but the Home Assistant MQTT service is unavailable")
+        config["mqtt"] = [
+            {
+                "active": True,
+                "host": mqtt_service["host"],
+                "port": mqtt_service["port"],
+                "username": mqtt_service["username"],
+                "password": mqtt_service["password"],
+                "topic": options["mqtt"]["topic"],
+                "msgformat": options["mqtt"]["msgformat"],
+                "qos": options["mqtt"]["qos"],
+                "client_id": options["mqtt"]["client_id"],
+                "protocol": "MQTTS" if mqtt_service["ssl"] else "MQTT",
+            }
+        ]
     log_level = options["log_level"]
     if log_level == "default":
         # The add-on UI needs six choices to render this as a dropdown rather
@@ -274,6 +324,9 @@ def redact(config: dict[str, Any]) -> dict[str, Any]:
     result = copy.deepcopy(config)
     if "sharing_key" in result:
         result["sharing_key"] = "<redacted>"
+    for mqtt in result.get("mqtt", []):
+        if "password" in mqtt:
+            mqtt["password"] = "<redacted>"
     return result
 
 
@@ -285,6 +338,32 @@ def load_options(path: pathlib.Path) -> dict[str, Any]:
         raise fail(f"options file does not exist: {path}") from error
     except json.JSONDecodeError as error:
         raise fail(f"options file is not valid JSON: {error}") from error
+
+
+def load_mqtt_service_from_environment() -> dict[str, Any]:
+    """Read the MQTT service details supplied by run.sh without logging them."""
+    required = {
+        "host": os.environ.get("AIS_MQTT_HOST", "").strip(),
+        "port": os.environ.get("AIS_MQTT_PORT", "").strip(),
+        "username": os.environ.get("AIS_MQTT_USERNAME", ""),
+        "password": os.environ.get("AIS_MQTT_PASSWORD", ""),
+        "ssl": os.environ.get("AIS_MQTT_SSL", "").strip().lower(),
+    }
+    if not required["host"] or not required["port"] or required["ssl"] not in {"true", "false"}:
+        raise fail("MQTT service details are missing or invalid")
+    try:
+        port = int(required["port"])
+    except ValueError as error:
+        raise fail("MQTT service port is invalid") from error
+    if not 1 <= port <= 65535:
+        raise fail("MQTT service port must be between 1 and 65535")
+    return {
+        "host": required["host"],
+        "port": port,
+        "username": required["username"],
+        "password": required["password"],
+        "ssl": required["ssl"] == "true",
+    }
 
 
 def write_config(path: pathlib.Path, config: dict[str, Any]) -> None:
@@ -321,7 +400,16 @@ def main() -> int:
     try:
         options = load_options(args.options)
         validate_options(options)
-        result = build_config(options, hardware=not args.no_hardware)
+        mqtt_service = (
+            load_mqtt_service_from_environment()
+            if options["mqtt"]["enabled"]
+            else None
+        )
+        result = build_config(
+            options,
+            hardware=not args.no_hardware,
+            mqtt_service=mqtt_service,
+        )
         write_config(args.output, result["config"])
     except (ConfigurationError, OSError) as error:
         print(error, file=sys.stderr)

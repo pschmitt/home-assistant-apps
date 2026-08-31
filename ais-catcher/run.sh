@@ -16,6 +16,7 @@ EOF
 
 main() {
   local summary mode log_level antenna_enabled antenna_latitude antenna_longitude
+  local mqtt_enabled mqtt_host mqtt_port mqtt_username mqtt_password mqtt_ssl
   local no_hardware
   local -a ais_args generator_args
 
@@ -42,6 +43,33 @@ main() {
   then
     printf 'AIS-catcher: %s is missing or unreadable.\n' "${OPTIONS_PATH}" >&2
     return 2
+  fi
+
+  # shellcheck source=/usr/lib/bashio/bashio.sh
+  if ! source /usr/lib/bashio/bashio.sh
+  then
+    printf 'AIS-catcher: cannot load Home Assistant service helpers.\n' >&2
+    return 2
+  fi
+
+  mqtt_enabled="$(bashio::config 'mqtt.enabled')"
+  if [[ "${mqtt_enabled}" == true ]]
+  then
+    if ! mqtt_host="$(bashio::services mqtt 'host')" \
+      || ! mqtt_port="$(bashio::services mqtt 'port')" \
+      || ! mqtt_username="$(bashio::services mqtt 'username')" \
+      || ! mqtt_password="$(bashio::services mqtt 'password')" \
+      || ! mqtt_ssl="$(bashio::services mqtt 'ssl')"
+    then
+      printf 'AIS-catcher: MQTT is enabled, but the Home Assistant MQTT service is unavailable.\n' >&2
+      printf 'AIS-catcher: install/start the Mosquitto broker or disable mqtt.enabled.\n' >&2
+      return 2
+    fi
+    export AIS_MQTT_HOST="${mqtt_host}"
+    export AIS_MQTT_PORT="${mqtt_port}"
+    export AIS_MQTT_USERNAME="${mqtt_username}"
+    export AIS_MQTT_PASSWORD="${mqtt_password}"
+    export AIS_MQTT_SSL="${mqtt_ssl}"
   fi
 
   generator_args=(

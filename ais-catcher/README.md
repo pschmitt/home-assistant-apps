@@ -13,10 +13,10 @@ See [DOCS.md](DOCS.md) for installation, configuration, troubleshooting, and
 the hardware validation checklist.
 
 The published image builds AIS-catcher v0.70 from its upstream source commit.
-Only the
-RTL-SDR driver and built-in web viewer are enabled in the image. UDP and TCP
-outputs, AISHub, and the optional aiscatcher.org community feed all use
-AIS-catcher's native output mechanisms.
+Only the RTL-SDR driver and built-in web viewer are enabled in the image. UDP
+and TCP outputs, MQTT, AISHub, and the optional aiscatcher.org community feed
+all use AIS-catcher's native output mechanisms. MQTT credentials are obtained
+from Home Assistant's discovered Mosquitto service when MQTT output is enabled.
 
 ## Quick start
 

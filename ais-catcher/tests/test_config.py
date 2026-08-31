@@ -225,6 +225,81 @@ class ConfigGenerationTests(unittest.TestCase):
         self.assertIn("AISHub", process.stderr)
         self.assertFalse(output_exists)
 
+    def test_mqtt_output_uses_discovered_service_and_redacts_password(self) -> None:
+        options = generate_config.merged_options(
+            json.loads((OPTIONS / "minimal.json").read_text(encoding="utf-8"))
+        )
+        options["mqtt"].update(
+            {
+                "enabled": True,
+                "topic": "ais-catcher/%mmsi%",
+                "msgformat": "JSON_FULL",
+                "qos": 1,
+                "client_id": "ais-catcher-test",
+            }
+        )
+        service = {
+            "host": "core-mosquitto",
+            "port": 1883,
+            "username": "mqtt-user",
+            "password": "mqtt-secret",
+            "ssl": False,
+        }
+
+        generate_config.validate_options(options)
+        config = generate_config.build_config(options, mqtt_service=service)["config"]
+        mqtt = config["mqtt"][0]
+
+        self.assertEqual(mqtt["host"], "core-mosquitto")
+        self.assertEqual(mqtt["port"], 1883)
+        self.assertEqual(mqtt["topic"], "ais-catcher/%mmsi%")
+        self.assertEqual(mqtt["msgformat"], "JSON_FULL")
+        self.assertEqual(mqtt["qos"], 1)
+        self.assertEqual(mqtt["protocol"], "MQTT")
+        self.assertEqual(mqtt["password"], "mqtt-secret")
+        self.assertNotIn("mqtt-secret", json.dumps(generate_config.redact(config)))
+        self.assertIn('"password": "<redacted>"', json.dumps(generate_config.redact(config)))
+
+    def test_mqtt_output_requires_the_discovered_service(self) -> None:
+        options = generate_config.merged_options(
+            json.loads((OPTIONS / "minimal.json").read_text(encoding="utf-8"))
+        )
+        options["mqtt"]["enabled"] = True
+
+        generate_config.validate_options(options)
+        with self.assertRaisesRegex(
+            generate_config.ConfigurationError, "MQTT.*service.*unavailable"
+        ):
+            generate_config.build_config(options)
+
+    def test_mqtt_tls_uses_service_ssl_setting(self) -> None:
+        options = generate_config.merged_options(
+            json.loads((OPTIONS / "minimal.json").read_text(encoding="utf-8"))
+        )
+        options["mqtt"]["enabled"] = True
+        generate_config.validate_options(options)
+        config = generate_config.build_config(
+            options,
+            mqtt_service={
+                "host": "mqtt.example",
+                "port": 8883,
+                "username": "user",
+                "password": "secret",
+                "ssl": True,
+            },
+        )["config"]
+
+        self.assertEqual(config["mqtt"][0]["protocol"], "MQTTS")
+
+    def test_mqtt_wildcard_topic_is_rejected(self) -> None:
+        options = generate_config.merged_options(
+            json.loads((OPTIONS / "minimal.json").read_text(encoding="utf-8"))
+        )
+        options["mqtt"].update({"enabled": True, "topic": "ais/#"})
+
+        with self.assertRaisesRegex(generate_config.ConfigurationError, "mqtt.topic"):
+            generate_config.validate_options(options)
+
     def test_invalid_community_key_fails_before_writing_configuration(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             options = pathlib.Path(temporary_directory) / "options.json"

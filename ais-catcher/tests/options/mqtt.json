@@ -1,0 +1,39 @@
+{
+  "receiver": {
+    "gain": "auto",
+    "ppm": 0,
+    "rtlagc": false,
+    "sample_rate": 1536000,
+    "bandwidth": 192000,
+    "channel": "AB"
+  },
+  "antenna": {
+    "enabled": true,
+    "latitude": 52.520008,
+    "longitude": 13.404954
+  },
+  "web": {
+    "enabled": true
+  },
+  "nmea": {
+    "udp_outputs": [],
+    "tcp_outputs": []
+  },
+  "mqtt": {
+    "enabled": true,
+    "topic": "ais-catcher/%mmsi%",
+    "msgformat": "JSON_FULL",
+    "qos": 1,
+    "client_id": "ais-catcher-test"
+  },
+  "aishub": {
+    "enabled": false,
+    "host": "",
+    "port": 0
+  },
+  "aiscatcher_share": {
+    "enabled": false,
+    "key": ""
+  },
+  "log_level": "info"
+}

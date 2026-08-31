@@ -68,6 +68,25 @@ configuration:
           port:
             name: Destination port
             description: TCP destination port.
+  mqtt:
+    name: MQTT output
+    description: Publish locally received AIS messages through the Home Assistant MQTT broker.
+    fields:
+      enabled:
+        name: Enable MQTT output
+        description: Use the Home Assistant MQTT service discovered by Supervisor.
+      topic:
+        name: MQTT topic
+        description: Topic for AIS messages; supports AIS-catcher %mmsi% templates.
+      msgformat:
+        name: Message format
+        description: Publish raw NMEA or AIS-catcher JSON messages.
+      qos:
+        name: MQTT QoS
+        description: MQTT delivery quality level from 0 to 2.
+      client_id:
+        name: MQTT client ID
+        description: Client identifier used by AIS-catcher when connecting to Mosquitto.
   aishub:
     name: AISHub sharing
     description: Share only locally received AIS NMEA data with AISHub.

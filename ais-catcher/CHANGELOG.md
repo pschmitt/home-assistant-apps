@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.6
+
+- Add optional native AIS-catcher MQTT output using Home Assistant's discovered
+  MQTT service.
+- Publish raw NMEA or decoded JSON to a configurable topic without exposing
+  broker credentials in the app configuration UI.
+
 ## 0.1.5
 
 - Publish the configured antenna coordinates to the AIS-catcher web viewer so
