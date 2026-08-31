@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.11
+
+- Use bashio's Supervisor token handling for MQTT service discovery while
+  keeping transient discovery errors out of normal app logs.
+
 ## 0.1.10
 
 - Avoid noisy Supervisor API errors while waiting for MQTT service discovery.

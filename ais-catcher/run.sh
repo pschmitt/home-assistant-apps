@@ -14,10 +14,29 @@ The --no-hardware mode is for local development only.
 EOF
 }
 
+get_mqtt_service()
+{
+  local quiet_log_fd result
+
+  # bashio owns the Supervisor token and API endpoint.  Keep its retry errors
+  # out of the normal app log while the Supervisor is still becoming ready.
+  exec {quiet_log_fd}>/dev/null
+  # shellcheck disable=SC2034 # LOG_FD is consumed by the sourced bashio library.
+  LOG_FD="${quiet_log_fd}"
+  if bashio::services mqtt
+  then
+    result=0
+  else
+    result=$?
+  fi
+  exec {quiet_log_fd}>&-
+  return "${result}"
+}
+
 main() {
   local summary mode log_level antenna_enabled antenna_latitude antenna_longitude
   local mqtt_enabled mqtt_host mqtt_port mqtt_username mqtt_password mqtt_ssl
-  local mqtt_service mqtt_service_ready mqtt_service_response supervisor_api
+  local mqtt_service mqtt_service_ready
   local no_hardware
   local -a ais_args generator_args
 
@@ -61,14 +80,9 @@ main() {
   if [[ "${mqtt_enabled}" == true ]]
   then
     mqtt_service_ready=false
-    supervisor_api="${__BASHIO_SUPERVISOR_API:-http://supervisor}"
     for attempt in {1..30}
     do
-      if mqtt_service_response="$(curl --silent --show-error --fail \
-        -H "Authorization: Bearer ${SUPERVISOR_TOKEN}" \
-        "${supervisor_api}/services/mqtt" 2>/dev/null)" \
-        && mqtt_service="$(jq --compact-output --exit-status '.data // empty' \
-          <<< "${mqtt_service_response}")" \
+      if mqtt_service="$(get_mqtt_service 2>/dev/null)" \
         && mqtt_host="$(jq --raw-output --exit-status '.host // empty' <<< "${mqtt_service}")" \
         && mqtt_port="$(jq --raw-output --exit-status '.port // empty' <<< "${mqtt_service}")" \
         && mqtt_username="$(jq --raw-output '.username // empty' <<< "${mqtt_service}")" \
