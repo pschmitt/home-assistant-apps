@@ -1,6 +1,4 @@
 {
-  "hardware_required": true,
-  "device": "NESDR-TEST-SERIAL",
   "receiver": {
     "gain": "32.8",
     "ppm": -3,
@@ -17,18 +15,20 @@
   "web": {
     "enabled": true
   },
-  "udp_outputs": [
-    {
-      "host": "192.0.2.10",
-      "port": 10110
-    }
-  ],
-  "tcp_outputs": [
-    {
-      "host": "ais-consumer.example",
-      "port": 4001
-    }
-  ],
+  "nmea": {
+    "udp_outputs": [
+      {
+        "host": "192.0.2.10",
+        "port": 10110
+      }
+    ],
+    "tcp_outputs": [
+      {
+        "host": "ais-consumer.example",
+        "port": 4001
+      }
+    ]
+  },
   "aishub": {
     "enabled": true,
     "host": "aishub.example",

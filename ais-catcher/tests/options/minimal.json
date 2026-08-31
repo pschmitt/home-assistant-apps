@@ -1,5 +1,4 @@
 {
-  "hardware_required": true,
   "receiver": {
     "gain": "auto",
     "ppm": 0,
@@ -16,8 +15,10 @@
   "web": {
     "enabled": true
   },
-  "udp_outputs": [],
-  "tcp_outputs": [],
+  "nmea": {
+    "udp_outputs": [],
+    "tcp_outputs": []
+  },
   "aishub": {
     "enabled": false,
     "host": "",

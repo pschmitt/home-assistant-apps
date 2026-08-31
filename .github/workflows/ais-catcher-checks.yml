@@ -39,7 +39,7 @@ jobs:
           docker run --detach --name ais-catcher-test \
             --publish 8100:8100 \
             --volume "$PWD/ais-catcher/tests/options/no-hardware.json:/data/options.json:ro" \
-            local/ais-catcher:test
+            local/ais-catcher:test /run.sh --no-hardware
           trap 'docker logs ais-catcher-test; docker rm --force ais-catcher-test' EXIT
           for attempt in {1..30}
           do

@@ -20,8 +20,6 @@ available through Home Assistant ingress.
 The default options are suitable as a starting point:
 
 ```yaml
-hardware_required: true
-device: /dev/bus/usb/001/008
 receiver:
   gain: auto
   ppm: 0
@@ -35,8 +33,9 @@ antenna:
   longitude: 0.0
 web:
   enabled: true
-udp_outputs: []
-tcp_outputs: []
+nmea:
+  udp_outputs: []
+  tcp_outputs: []
 aishub:
   enabled: false
   host: ""
@@ -47,16 +46,10 @@ aiscatcher_share:
 log_level: info
 ```
 
-`device` is an optional Home Assistant device selector filtered to USB
-devices. On an unmodified HAOS installation, Supervisor may show raw
-`/dev/bus/usb/...` paths for USB devices; those paths are runtime bus addresses
-and can change after a replug. For a persistent, human-readable selector,
-install the included udev rule as described below. The resulting option looks
-like `/dev/ais-catcher/by-id/nesdr-smart-v5-28567980`. AIS-catcher uses the
-selected USB device's serial number internally, so the generated configuration
-remains stable across the app container's device enumeration order. If no
-device is selected, AIS-catcher automatically selects the first compatible
-RTL-SDR. `gain` is either
+AIS-catcher automatically selects a compatible RTL-SDR. This add-on intentionally
+does not expose USB bus paths in its configuration because those paths are
+transient and can change after a replug. The intended setup has one RTL-SDR
+receiver attached to the Home Assistant OS host. `gain` is either
 `auto` or a tuner gain in dB from 0 to 50. Start with `auto` and adjust only
 after looking at the signal-level and message statistics in the web viewer.
 `ppm` accepts -150 through 150. `channel: AB` covers AIS1 and AIS2 with one
@@ -74,15 +67,16 @@ the privacy implications.
 add-on alias for `info`; it keeps the five actual AIS-catcher levels in a
 dropdown in the current Home Assistant frontend.
 
-`udp_outputs` and `tcp_outputs` are lists of NMEA destinations, for example:
+The `nmea` section contains UDP and TCP NMEA destinations, for example:
 
 ```yaml
-udp_outputs:
-  - host: 192.0.2.10
-    port: 10110
-tcp_outputs:
-  - host: ais-consumer.example
-    port: 4001
+nmea:
+  udp_outputs:
+    - host: 192.0.2.10
+      port: 10110
+  tcp_outputs:
+    - host: ais-consumer.example
+      port: 4001
 ```
 
 These are AIS-catcher TCP clients, not TCP listeners. AISHub is also a native
@@ -116,28 +110,14 @@ retained as an empty compatibility file for this repository; the pinned base
 images and build settings are intentionally declared in the Dockerfile. The
 published image is `ghcr.io/pschmitt/{arch}-home-assistant-app-ais-catcher`.
 
-### Persistent NESDR selector path
-
-The standard Home Assistant app `device` schema can display a persistent
-`by-id` link when udev provides one. Raw RTL-SDR USB devices do not create a
-serial-port link automatically, so this repository includes
-`udev/99-ais-catcher.rules`, which creates one for the NESDR Smart v5. To use
-it on HAOS, copy the file to the `udev/` directory of a `CONFIG` USB drive and
-run `ha os import`, or place the rule in `/etc/udev/rules.d/` using the HAOS
-host shell. Replug the receiver or reboot the host after importing it, then
-refresh the app configuration page. The selector should show a path such as
-`/dev/ais-catcher/by-id/nesdr-smart-v5-28567980` instead of the transient bus
-address. The rule matches the Nooelec model and includes the dongle's stable
-serial number, so it also distinguishes multiple NESDR Smart v5 receivers.
-
 ## Connecting and checking the NESDR Smart v5
 
 Connect the NESDR directly to the Home Assistant OS host, or use a powered USB
 hub if the host cannot provide stable power. The app sets `usb: true`, which
 maps Home Assistant OS's raw `/dev/bus/usb` tree into the container and allows
-plug-and-play enumeration. No vendor/product ID is hardcoded; AIS-catcher
-selects the first compatible RTL-SDR or the serial number resolved from the
-selected USB device.
+plug-and-play enumeration. No vendor/product ID or bus path is hardcoded;
+AIS-catcher automatically selects a compatible RTL-SDR. The add-on is intended
+to have one RTL-SDR receiver attached to the host.
 
 After connecting the receiver:
 
@@ -201,10 +181,11 @@ target Home Assistant OS system.
 
 ## Development without an SDR
 
-The `hardware_required: false` option is specifically for development and
-configuration checks. In this mode, the generated configuration has an
-AIS-catcher `udpserver` receiver bound to `127.0.0.1:10110`. It waits for
-NMEA input but does not create a radio source and does not invent traffic.
+The `/run.sh --no-hardware` argument is specifically for development and
+configuration checks. It is not part of the Home Assistant configuration and
+is never used by the production app. In this mode, the generated configuration
+has an AIS-catcher `udpserver` receiver bound to `127.0.0.1:10110`. It waits
+for NMEA input but does not create a radio source and does not invent traffic.
 
 Build and run it on an amd64 development machine:
 
@@ -213,7 +194,7 @@ docker build --build-arg BUILD_ARCH=amd64 -t local/ais-catcher:dev ais-catcher
 docker run --rm --name ais-catcher-dev \
   --publish 8100:8100 \
   --volume "$PWD/ais-catcher/tests/options/no-hardware.json:/data/options.json:ro" \
-  local/ais-catcher:dev
+  local/ais-catcher:dev /run.sh --no-hardware
 ```
 
 Open `http://127.0.0.1:8100`. The interface should load and show that no
@@ -229,10 +210,10 @@ python3 ais-catcher/generate_config.py \
   --print-redacted
 ```
 
-The normal production mode remains `hardware_required: true`. Without the
-physical device, AIS-catcher will report that no compatible device is
-available and exit; this is intentional and makes a missing receiver visible
-instead of creating fake reception.
+Production always uses the real RTL-SDR input. Without the physical device,
+AIS-catcher reports that no compatible device is available and exits; this is
+intentional and makes a missing receiver visible instead of creating fake
+reception.
 
 ## AISHub and community sharing
 
@@ -252,11 +233,9 @@ or proxy that protocol.
 
 Check `ha hardware info`, then inspect kernel USB logs. Restart the app after
 plugging in the dongle. In the app log, AIS-catcher's `-l JSON on` output should
-include the RTL-SDR. If several devices are present, select the intended NESDR
-by its persistent `/dev/ais-catcher/by-id/...` path in the app configuration.
-If the udev rule has not been installed, select the current raw USB path and
-restart the app after any replug so Supervisor can refresh it. The app resolves
-either path to the radio's serial number before starting AIS-catcher.
+include the RTL-SDR. If several RTL-SDR devices are present, AIS-catcher's
+automatic selection may not choose the intended one; use a single attached
+RTL-SDR for this add-on.
 
 ### Permission or access failure
 

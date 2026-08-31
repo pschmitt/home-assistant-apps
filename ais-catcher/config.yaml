@@ -1,5 +1,5 @@
 name: AIS-catcher
-version: 0.1.3
+version: 0.1.4
 slug: ais-catcher
 description: Receive and share AIS traffic with an RTL-SDR and AIS-catcher
 url: https://github.com/pschmitt/home-assistant-apps/tree/main/ais-catcher
@@ -20,7 +20,6 @@ panel_title: AIS-catcher
 timeout: 30
 
 options:
-  hardware_required: true
   receiver:
     gain: auto
     ppm: 0
@@ -34,8 +33,9 @@ options:
     longitude: 0.0
   web:
     enabled: true
-  udp_outputs: []
-  tcp_outputs: []
+  nmea:
+    udp_outputs: []
+    tcp_outputs: []
   aishub:
     enabled: false
     host: ""
@@ -46,8 +46,6 @@ options:
   log_level: info
 
 schema:
-  hardware_required: bool
-  device: device(subsystem=usb)?
   receiver:
     gain: str
     ppm: int(-150,150)
@@ -61,12 +59,13 @@ schema:
     longitude: float(-180,180)
   web:
     enabled: bool
-  udp_outputs:
-    - host: str
-      port: int(1,65535)
-  tcp_outputs:
-    - host: str
-      port: int(1,65535)
+  nmea:
+    udp_outputs:
+      - host: str
+        port: int(1,65535)
+    tcp_outputs:
+      - host: str
+        port: int(1,65535)
   aishub:
     enabled: bool
     host: str

@@ -1,4 +1,0 @@
-# Give the Nooelec NESDR Smart v5 a stable by-id path for Home Assistant's
-# dynamic app device selector. The serial number makes multiple receivers
-# distinguishable and remains stable across USB re-enumeration.
-SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ENV{ID_VENDOR}=="Nooelec", ENV{ID_MODEL}=="NESDR_SMArt_v5", ENV{ID_SERIAL_SHORT}=="?*", SYMLINK+="ais-catcher/by-id/nesdr-smart-v5-%E{ID_SERIAL_SHORT}"

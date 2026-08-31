@@ -16,8 +16,6 @@ from typing import Any
 
 
 DEFAULTS: dict[str, Any] = {
-    "hardware_required": True,
-    "device": None,
     "receiver": {
         "gain": "auto",
         "ppm": 0,
@@ -32,17 +30,27 @@ DEFAULTS: dict[str, Any] = {
         "longitude": 0.0,
     },
     "web": {"enabled": True},
-    "udp_outputs": [],
-    "tcp_outputs": [],
+    "nmea": {
+        "udp_outputs": [],
+        "tcp_outputs": [],
+    },
     "aishub": {"enabled": False, "host": "", "port": 0},
     "aiscatcher_share": {"enabled": False, "key": ""},
     "log_level": "info",
 }
 
 TOP_LEVEL_KEYS = set(DEFAULTS)
+LEGACY_TOP_LEVEL_KEYS = {
+    "device",
+    "hardware_required",
+    "udp_outputs",
+    "tcp_outputs",
+}
+LEGACY_NMEA_KEYS = {"udp_outputs", "tcp_outputs"}
 RECEIVER_KEYS = set(DEFAULTS["receiver"])
 ANTENNA_KEYS = set(DEFAULTS["antenna"])
 WEB_KEYS = set(DEFAULTS["web"])
+NMEA_KEYS = set(DEFAULTS["nmea"])
 AISHUB_KEYS = set(DEFAULTS["aishub"])
 SHARE_KEYS = set(DEFAULTS["aiscatcher_share"])
 LOG_LEVELS = {"default", "debug", "info", "warning", "error", "critical"}
@@ -71,35 +79,31 @@ def require_keys(value: dict[str, Any], allowed: set[str], name: str) -> None:
 
 def merged_options(options: Any) -> dict[str, Any]:
     require_type(options, dict, "top-level options")
-    require_keys(options, TOP_LEVEL_KEYS, "top-level options")
+    require_keys(
+        options,
+        TOP_LEVEL_KEYS | LEGACY_TOP_LEVEL_KEYS,
+        "top-level options",
+    )
     result = copy.deepcopy(DEFAULTS)
     for key, value in options.items():
+        if key in LEGACY_TOP_LEVEL_KEYS:
+            continue
         if isinstance(result.get(key), dict) and isinstance(value, dict):
             nested_value = copy.deepcopy(value)
             nested_value.pop("device", None)
             result[key].update(nested_value)
         else:
             result[key] = value
-    receiver_options = options.get("receiver")
-    legacy_device = (
-        receiver_options.get("device")
-        if isinstance(receiver_options, dict)
-        else None
-    )
-    if result["device"] is None and legacy_device not in (None, "auto"):
-        result["device"] = legacy_device
+    nmea_options = options.get("nmea")
+    if not isinstance(nmea_options, dict):
+        nmea_options = {}
+    for key in LEGACY_NMEA_KEYS:
+        if key in options and key not in nmea_options:
+            result["nmea"][key] = options[key]
     return result
 
 
 def validate_options(options: dict[str, Any]) -> None:
-    require_type(options["hardware_required"], bool, "hardware_required")
-
-    device = options["device"]
-    if device is not None:
-        require_type(device, str, "device")
-        if not device.strip():
-            raise fail("device must not be empty")
-
     receiver = require_type(options["receiver"], dict, "receiver")
     require_keys(receiver, RECEIVER_KEYS, "receiver")
     gain = require_type(receiver["gain"], str, "receiver.gain")
@@ -138,8 +142,10 @@ def validate_options(options: dict[str, Any]) -> None:
     require_keys(web, WEB_KEYS, "web")
     require_type(web["enabled"], bool, "web.enabled")
 
-    validate_outputs(options["udp_outputs"], "udp_outputs")
-    validate_outputs(options["tcp_outputs"], "tcp_outputs")
+    nmea = require_type(options["nmea"], dict, "nmea")
+    require_keys(nmea, NMEA_KEYS, "nmea")
+    validate_outputs(nmea["udp_outputs"], "nmea.udp_outputs")
+    validate_outputs(nmea["tcp_outputs"], "nmea.tcp_outputs")
 
     aishub = require_type(options["aishub"], dict, "aishub")
     require_keys(aishub, AISHUB_KEYS, "aishub")
@@ -188,10 +194,11 @@ def require_number(value: Any, name: str) -> float:
 
 
 def build_config(
-    options: dict[str, Any], sysfs_root: pathlib.Path | None = None
+    options: dict[str, Any],
+    hardware: bool = True,
 ) -> dict[str, Any]:
     receiver_options = options["receiver"]
-    if options["hardware_required"]:
+    if hardware:
         receiver: dict[str, Any] = {
             "input": "rtlsdr",
             "channel": receiver_options["channel"],
@@ -207,8 +214,6 @@ def build_config(
                 "bandwidth": receiver_options["bandwidth"],
             },
         }
-        if options["device"] is not None:
-            receiver["serial"] = resolve_usb_serial(options["device"], sysfs_root)
         mode = "hardware"
     else:
         # This is a real AIS-catcher UDP NMEA input, not an SDR simulator. It
@@ -226,11 +231,11 @@ def build_config(
         "receiver": [receiver],
         "udp": [
             {"active": True, "host": output["host"], "port": output["port"]}
-            for output in options["udp_outputs"]
+            for output in options["nmea"]["udp_outputs"]
         ],
         "tcp": [
             {"active": True, "host": output["host"], "port": output["port"]}
-            for output in options["tcp_outputs"]
+            for output in options["nmea"]["tcp_outputs"]
         ],
     }
     if options["aishub"]["enabled"]:
@@ -254,47 +259,6 @@ def build_config(
         # than the five-value radio group used by the current frontend.
         log_level = "info"
     return {"mode": mode, "log_level": log_level, "config": config}
-
-
-def resolve_usb_serial(device_path: str, sysfs_root: pathlib.Path | None = None) -> str:
-    """Resolve a Supervisor USB device path to the serial AIS-catcher needs."""
-    original_path = pathlib.Path(device_path)
-    if original_path.is_symlink():
-        try:
-            device_path = str(original_path.resolve(strict=True))
-        except OSError as error:
-            raise fail(f"selected USB device link is broken: {device_path}") from error
-
-    match = re.search(r"(?:^|/)dev/bus/usb/(\d{3})/(\d{3})$", device_path)
-    if match is None:
-        # Keep accepting the pre-0.1.2 serial form for a one-time migration of
-        # manually maintained options. Supervisor's device selector always
-        # supplies a /dev/bus/usb path.
-        if device_path and not device_path.startswith("/dev/"):
-            return device_path
-        raise fail(
-            "device must be a Supervisor USB path such as "
-            "/dev/bus/usb/001/008"
-        )
-
-    root = sysfs_root or pathlib.Path("/sys/bus/usb/devices")
-    for entry in root.glob("*"):
-        try:
-            bus_number = (entry / "busnum").read_text(encoding="utf-8").strip()
-            device_number = (entry / "devnum").read_text(encoding="utf-8").strip()
-        except OSError:
-            continue
-        if (bus_number, device_number) != match.groups():
-            continue
-        try:
-            serial = (entry / "serial").read_text(encoding="utf-8").strip()
-        except OSError as error:
-            raise fail(f"selected USB device has no readable serial: {device_path}") from error
-        if not serial:
-            raise fail(f"selected USB device has no serial: {device_path}")
-        return serial
-
-    raise fail(f"selected USB device is not present: {device_path}")
 
 
 def redact(config: dict[str, Any]) -> dict[str, Any]:
@@ -335,6 +299,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--options", type=pathlib.Path, default=pathlib.Path("/data/options.json"))
     parser.add_argument("--output", type=pathlib.Path, default=pathlib.Path("/data/aiscatcher.json"))
     parser.add_argument("--print-redacted", action="store_true")
+    parser.add_argument(
+        "--no-hardware",
+        action="store_true",
+        help="use an idle native AIS-catcher NMEA input for development",
+    )
     return parser.parse_args()
 
 
@@ -343,7 +312,7 @@ def main() -> int:
     try:
         options = load_options(args.options)
         validate_options(options)
-        result = build_config(options)
+        result = build_config(options, hardware=not args.no_hardware)
         write_config(args.output, result["config"])
     except (ConfigurationError, OSError) as error:
         print(error, file=sys.stderr)

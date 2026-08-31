@@ -5,9 +5,38 @@ set -Eeuo pipefail
 readonly OPTIONS_PATH=/data/options.json
 readonly CONFIG_PATH=/data/aiscatcher.json
 
+usage() {
+  cat <<EOF
+Usage: $(basename "$0") [--no-hardware]
+
+Run AIS-catcher with the Home Assistant options in ${OPTIONS_PATH}.
+The --no-hardware mode is for local development only.
+EOF
+}
+
 main() {
   local summary mode log_level antenna_enabled antenna_latitude antenna_longitude
-  local -a ais_args
+  local no_hardware
+  local -a ais_args generator_args
+
+  while [[ -n "${1:-}" ]]
+  do
+    case "$1" in
+      -h|--help)
+        usage
+        return 0
+        ;;
+      --no-hardware)
+        no_hardware=1
+        shift
+        ;;
+      *)
+        printf 'AIS-catcher: unknown option: %s\n' "$1" >&2
+        usage >&2
+        return 2
+        ;;
+    esac
+  done
 
   if [[ ! -r "${OPTIONS_PATH}" ]]
   then
@@ -15,9 +44,15 @@ main() {
     return 2
   fi
 
-  summary="$(python3 /usr/bin/generate_config.py \
-    --options "${OPTIONS_PATH}" \
-    --output "${CONFIG_PATH}")"
+  generator_args=(
+    --options "${OPTIONS_PATH}"
+    --output "${CONFIG_PATH}"
+  )
+  if [[ -n "${no_hardware:-}" ]]
+  then
+    generator_args+=(--no-hardware)
+  fi
+  summary="$(python3 /usr/bin/generate_config.py "${generator_args[@]}")"
   IFS='|' read -r mode log_level antenna_enabled antenna_latitude antenna_longitude <<< "${summary}"
 
   printf 'AIS-catcher: generated configuration (%s mode, log level %s).\n' \

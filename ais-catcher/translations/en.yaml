@@ -1,15 +1,5 @@
 ---
 configuration:
-  hardware_required:
-    name: Require RTL-SDR hardware
-    description: >-
-      Keep enabled for normal reception. Disable only for development without
-      an SDR; this does not generate or simulate AIS messages.
-  device:
-    name: Device
-    description: >-
-      Select the RTL-SDR USB receiver. The list is provided by Home Assistant
-      OS and is refreshed when USB devices are connected or removed.
   receiver:
     name: Receiver
     description: Configure the RTL-SDR receiver and AIS channels.
@@ -54,26 +44,30 @@ configuration:
       enabled:
         name: Enable web interface
         description: Make the built-in AIS-catcher viewer available through ingress.
-  udp_outputs:
-    name: UDP NMEA outputs
-    description: Forward locally decoded AIS NMEA sentences to UDP destinations.
+  nmea:
+    name: NMEA outputs
+    description: Forward locally decoded AIS NMEA sentences to network destinations.
     fields:
-      host:
-        name: Destination host
-        description: Hostname or IP address of the UDP consumer.
-      port:
-        name: Destination port
-        description: UDP destination port.
-  tcp_outputs:
-    name: TCP NMEA outputs
-    description: Forward locally decoded AIS NMEA sentences to TCP destinations.
-    fields:
-      host:
-        name: Destination host
-        description: Hostname or IP address of the TCP consumer.
-      port:
-        name: Destination port
-        description: TCP destination port.
+      udp_outputs:
+        name: UDP destinations
+        description: Forward locally decoded AIS NMEA sentences over UDP.
+        fields:
+          host:
+            name: Destination host
+            description: Hostname or IP address of the UDP consumer.
+          port:
+            name: Destination port
+            description: UDP destination port.
+      tcp_outputs:
+        name: TCP destinations
+        description: Forward locally decoded AIS NMEA sentences over TCP.
+        fields:
+          host:
+            name: Destination host
+            description: Hostname or IP address of the TCP consumer.
+          port:
+            name: Destination port
+            description: TCP destination port.
   aishub:
     name: AISHub sharing
     description: Share only locally received AIS NMEA data with AISHub.

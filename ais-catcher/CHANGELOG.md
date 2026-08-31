@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.4
+
+- Group UDP and TCP NMEA destinations under one `nmea` configuration section.
+- Remove the transient USB device selector; AIS-catcher now auto-selects the
+  attached RTL-SDR.
+- Keep no-hardware execution as an explicit development-only environment
+  override rather than a production add-on option.
+
 ## 0.1.3
 
 - Add an optional antenna latitude/longitude setting using AIS-catcher's native

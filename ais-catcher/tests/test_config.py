@@ -59,7 +59,7 @@ class ConfigGenerationTests(unittest.TestCase):
         self.assertEqual(process.stdout.strip(), "hardware|debug|true|52.520008|13.404954")
         config = json.loads(output.read_text(encoding="utf-8"))
         receiver = config["receiver"][0]
-        self.assertEqual(receiver["serial"], "NESDR-TEST-SERIAL")
+        self.assertNotIn("serial", receiver)
         self.assertEqual(receiver["rtlsdr"]["tuner"], "32.8")
         self.assertEqual(receiver["rtlsdr"]["freqoffset"], -3)
         self.assertEqual(config["udp"], [
@@ -73,20 +73,6 @@ class ConfigGenerationTests(unittest.TestCase):
         }])
         self.assertTrue(config["sharing"])
         self.assertEqual(config["sharing_key"], "123e4567-e89b-12d3-a456-426614174000")
-
-    def test_selected_usb_device_resolves_to_ais_catcher_serial(self) -> None:
-        options = json.loads((OPTIONS / "selected-usb.json").read_text(encoding="utf-8"))
-        with tempfile.TemporaryDirectory() as temporary_directory:
-            sysfs_root = pathlib.Path(temporary_directory)
-            usb_device = sysfs_root / "1-8"
-            usb_device.mkdir()
-            (usb_device / "busnum").write_text("001\n", encoding="utf-8")
-            (usb_device / "devnum").write_text("008\n", encoding="utf-8")
-            (usb_device / "serial").write_text("28567980\n", encoding="utf-8")
-            merged = generate_config.merged_options(options)
-            generate_config.validate_options(merged)
-            config = generate_config.build_config(merged, sysfs_root)["config"]
-        self.assertEqual(config["receiver"][0]["serial"], "28567980")
 
     def test_enabled_antenna_location_is_exported_for_runtime_arguments(self) -> None:
         process, output = self.run_generator("full.json")
@@ -119,27 +105,6 @@ class ConfigGenerationTests(unittest.TestCase):
             )
         self.assertEqual(process.returncode, 0, process.stderr)
         self.assertEqual(process.stdout.strip(), "hardware|info|false|0.0|0.0")
-
-    def test_selected_stable_usb_symlink_resolves_to_serial(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary_directory:
-            root = pathlib.Path(temporary_directory)
-            target = root / "dev" / "bus" / "usb" / "001" / "008"
-            target.parent.mkdir(parents=True)
-            target.touch()
-            link = root / "dev" / "ais-catcher" / "by-id" / "nesdr-smart-v5-28567980"
-            link.parent.mkdir(parents=True)
-            link.symlink_to(target)
-            sysfs_root = root / "sys"
-            usb_device = sysfs_root / "1-8"
-            usb_device.mkdir(parents=True)
-            (usb_device / "busnum").write_text("001\n", encoding="utf-8")
-            (usb_device / "devnum").write_text("008\n", encoding="utf-8")
-            (usb_device / "serial").write_text("28567980\n", encoding="utf-8")
-
-            self.assertEqual(
-                generate_config.resolve_usb_serial(str(link), sysfs_root),
-                "28567980",
-            )
 
     def test_invalid_antenna_latitude_fails_before_writing_configuration(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
@@ -175,7 +140,7 @@ class ConfigGenerationTests(unittest.TestCase):
         self.assertEqual(stat.S_IMODE(output.stat().st_mode), 0o600)
 
     def test_no_hardware_mode_is_native_idle_udp_input(self) -> None:
-        process, output = self.run_generator("no-hardware.json")
+        process, output = self.run_generator("no-hardware.json", "--no-hardware")
         self.assertEqual(process.returncode, 0, process.stderr)
         self.assertEqual(process.stdout.strip(), "no-hardware|info|false|0.0|0.0")
         config = json.loads(output.read_text(encoding="utf-8"))
@@ -183,6 +148,23 @@ class ConfigGenerationTests(unittest.TestCase):
         self.assertEqual(receiver["input"], "udpserver")
         self.assertEqual(receiver["udpserver"], {"server": "127.0.0.1", "port": 10110})
         self.assertNotIn("rtlsdr", json.dumps(config))
+
+    def test_legacy_options_are_migrated_without_exposing_old_fields(self) -> None:
+        options = json.loads((OPTIONS / "minimal.json").read_text(encoding="utf-8"))
+        options["device"] = "/dev/bus/usb/001/008"
+        options["hardware_required"] = True
+        options["udp_outputs"] = [{"host": "192.0.2.10", "port": 10110}]
+        options["tcp_outputs"] = [{"host": "ais-consumer.example", "port": 4001}]
+        del options["nmea"]
+
+        merged = generate_config.merged_options(options)
+        generate_config.validate_options(merged)
+        config = generate_config.build_config(merged)["config"]
+
+        self.assertEqual(merged["nmea"]["udp_outputs"], options["udp_outputs"])
+        self.assertEqual(merged["nmea"]["tcp_outputs"], options["tcp_outputs"])
+        self.assertNotIn("device", merged)
+        self.assertNotIn("serial", config["receiver"][0])
 
     def test_invalid_options_fail_before_writing_configuration(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:

@@ -9,11 +9,6 @@ This app is currently experimental. USB device initialization has been tested
 with a Nooelec NESDR Smart v5, but reception quality depends on the antenna,
 location, and local AIS traffic.
 
-For a stable, human-readable SDR choice in the Home Assistant configuration
-page, install the optional HAOS udev rule in
-[`udev/99-ais-catcher.rules`](udev/99-ais-catcher.rules); see [DOCS.md](DOCS.md)
-for the exact steps.
-
 See [DOCS.md](DOCS.md) for installation, configuration, troubleshooting, and
 the hardware validation checklist.
 
@@ -32,6 +27,6 @@ AIS-catcher's native output mechanisms.
    app with the default configuration.
 4. Open **AIS-catcher** from the Home Assistant sidebar.
 
-For development before the SDR arrives, set `hardware_required` to `false`.
-This starts the real AIS-catcher web server with an idle UDP NMEA input. It
-does not emulate an RTL-SDR and it does not generate AIS messages.
+For development without an SDR, start the image with `/run.sh --no-hardware`.
+This starts the real AIS-catcher web server with an idle UDP NMEA input; it
+does not emulate an RTL-SDR or generate AIS messages.
