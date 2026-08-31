@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.12
+
+- Import the Supervisor-provided container environment in the s6 service so
+  Bashio can authenticate MQTT service discovery.
+
 ## 0.1.11
 
 - Use bashio's Supervisor token handling for MQTT service discovery while
