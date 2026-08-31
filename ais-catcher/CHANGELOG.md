@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.16
+
+- Wait up to 60 seconds for Supervisor MQTT service discovery while retaining a
+  clear startup failure when MQTT remains unavailable.
+
 ## 0.1.15
 
 - Explicitly disable GPS lookup when a fixed antenna location is configured,

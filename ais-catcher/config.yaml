@@ -1,5 +1,5 @@
 name: AIS-catcher
-version: 0.1.15
+version: 0.1.16
 slug: ais-catcher
 description: Receive and share AIS traffic with an RTL-SDR and AIS-catcher
 url: https://github.com/pschmitt/home-assistant-apps/tree/main/ais-catcher
@@ -17,7 +17,7 @@ ingress_port: 8100
 ingress_stream: true
 panel_icon: mdi:ship-wheel
 panel_title: AIS-catcher
-timeout: 30
+timeout: 90
 services:
   - mqtt:want
 

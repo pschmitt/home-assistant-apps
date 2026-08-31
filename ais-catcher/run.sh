@@ -5,6 +5,7 @@ set -Eeuo pipefail
 
 readonly OPTIONS_PATH=/data/options.json
 readonly CONFIG_PATH=/data/aiscatcher.json
+readonly MQTT_SERVICE_ATTEMPTS=60
 
 usage() {
   cat <<EOF
@@ -81,7 +82,7 @@ main() {
   if [[ "${mqtt_enabled}" == true ]]
   then
     mqtt_service_ready=false
-    for attempt in {1..30}
+    for ((attempt = 1; attempt <= MQTT_SERVICE_ATTEMPTS; attempt++))
     do
       if mqtt_service="$(get_mqtt_service 2>/dev/null)" \
         && mqtt_host="$(jq --raw-output --exit-status '.host // empty' <<< "${mqtt_service}")" \
@@ -94,14 +95,15 @@ main() {
         mqtt_service_ready=true
         break
       fi
-      if (( attempt < 30 ))
+      if (( attempt < MQTT_SERVICE_ATTEMPTS ))
       then
         sleep 1
       fi
     done
     if [[ "${mqtt_service_ready}" != true ]]
     then
-      printf 'AIS-catcher: MQTT is enabled, but the Home Assistant MQTT service is unavailable after waiting 30 seconds.\n' >&2
+      printf 'AIS-catcher: MQTT is enabled, but the Home Assistant MQTT service is unavailable after waiting %s seconds.\n' \
+        "${MQTT_SERVICE_ATTEMPTS}" >&2
       printf 'AIS-catcher: install/start the Mosquitto broker or disable mqtt.enabled.\n' >&2
       return 2
     fi

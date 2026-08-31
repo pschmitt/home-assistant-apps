@@ -143,7 +143,8 @@ The app declares `mqtt:want` and obtains the broker host, port, TLS setting,
 username, and password from Supervisor's MQTT service discovery. Do not enter
 broker credentials in the AIS-catcher options. If no MQTT broker is available,
 the app continues to work while MQTT is disabled; enabling it without a
-discoverable broker is a startup error.
+discoverable broker is a startup error after a bounded 60-second discovery
+wait.
 
 `JSON_FULL` is the recommended format because it includes decoded fields such
 as MMSI, message type, latitude, longitude, speed, and the original NMEA
