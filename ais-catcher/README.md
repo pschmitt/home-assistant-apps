@@ -5,14 +5,15 @@ Receive Automatic Identification System (AIS) traffic with a USB RTL-SDR and
 Home Assistant OS and provides the AIS-catcher web viewer through Home
 Assistant ingress.
 
-This app is currently experimental. It was developed without the planned
-Nooelec NESDR Smart v5 being available, so successful USB reception and radio
-performance have not been claimed or tested.
+This app is currently experimental. USB device initialization has been tested
+with a Nooelec NESDR Smart v5, but reception quality depends on the antenna,
+location, and local AIS traffic.
 
 See [DOCS.md](DOCS.md) for installation, configuration, troubleshooting, and
 the hardware validation checklist.
 
-The image builds AIS-catcher v0.70 from its upstream source commit. Only the
+The published image builds AIS-catcher v0.70 from its upstream source commit.
+Only the
 RTL-SDR driver and built-in web viewer are enabled in the image. UDP and TCP
 outputs, AISHub, and the optional aiscatcher.org community feed all use
 AIS-catcher's native output mechanisms.
