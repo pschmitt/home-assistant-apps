@@ -266,13 +266,13 @@ For local Docker testing, publish `8100:8100` as shown above.
 
 ## Hardware validation checklist
 
-The following items are intentionally unchecked. They require the physical
-NESDR Smart v5 and must not be marked complete based on image builds or config
-tests:
+The first three checks below were completed on 2026-08-31 against the physical
+NESDR Smart v5 connected to the HAOS VM on `fnuc`. The remaining checks require
+actual AIS traffic and are still open:
 
-- [ ] Verify USB enumeration on the Home Assistant OS host.
-- [ ] Verify AIS-catcher detects the RTL-SDR.
-- [ ] Verify AIS-catcher initializes and opens the device.
+- [x] Verify USB enumeration on the Home Assistant OS host.
+- [x] Verify AIS-catcher detects the RTL-SDR.
+- [x] Verify AIS-catcher initializes and opens the device.
 - [ ] Determine an appropriate tuner gain.
 - [ ] Verify reception on AIS1, 161.975 MHz.
 - [ ] Verify reception on AIS2, 162.025 MHz.
