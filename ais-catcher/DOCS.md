@@ -102,8 +102,10 @@ Use the following signals together when diagnosing this state:
   position, so it does not necessarily create a vessel on the map.
 
 The first real position-bearing message from a vessel should normally clear
-the inactivity symptom upstream. If `received` stops increasing, the receiver
-logs repeated timeouts or device errors, or an output reports reconnects or
+the inactivity symptom upstream. A single `RTLSDR: timeout.` line is an
+internal sample-FIFO wait timeout and is not, by itself, evidence of a USB
+failure. If `received` stops increasing, AIS-catcher reports `lost device` or
+`buffer overrun`, the process restarts, or an output reports reconnects or
 drops, investigate the corresponding hardware, antenna, network, or service
 problem instead.
 
