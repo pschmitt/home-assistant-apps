@@ -15,6 +15,7 @@ main() {
   python3 -m json.tool "${SCRIPT_DIR}/options/no-hardware-sharing.json" >/dev/null
   python3 -m json.tool "${SCRIPT_DIR}/options/selected-usb.json" >/dev/null
   yq '.' "${APP_DIR}/config.yaml" >/dev/null
+  test -s "${APP_DIR}/udev/99-ais-catcher.rules"
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]

@@ -9,6 +9,11 @@ This app is currently experimental. USB device initialization has been tested
 with a Nooelec NESDR Smart v5, but reception quality depends on the antenna,
 location, and local AIS traffic.
 
+For a stable, human-readable SDR choice in the Home Assistant configuration
+page, install the optional HAOS udev rule in
+[`udev/99-ais-catcher.rules`](udev/99-ais-catcher.rules); see [DOCS.md](DOCS.md)
+for the exact steps.
+
 See [DOCS.md](DOCS.md) for installation, configuration, troubleshooting, and
 the hardware validation checklist.
 

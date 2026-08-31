@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import copy
 import json
+import math
 import os
 import pathlib
 import re
@@ -25,6 +26,11 @@ DEFAULTS: dict[str, Any] = {
         "bandwidth": 192000,
         "channel": "AB",
     },
+    "antenna": {
+        "enabled": False,
+        "latitude": 0.0,
+        "longitude": 0.0,
+    },
     "web": {"enabled": True},
     "udp_outputs": [],
     "tcp_outputs": [],
@@ -35,10 +41,11 @@ DEFAULTS: dict[str, Any] = {
 
 TOP_LEVEL_KEYS = set(DEFAULTS)
 RECEIVER_KEYS = set(DEFAULTS["receiver"])
+ANTENNA_KEYS = set(DEFAULTS["antenna"])
 WEB_KEYS = set(DEFAULTS["web"])
 AISHUB_KEYS = set(DEFAULTS["aishub"])
 SHARE_KEYS = set(DEFAULTS["aiscatcher_share"])
-LOG_LEVELS = {"debug", "info", "warning", "error", "critical"}
+LOG_LEVELS = {"default", "debug", "info", "warning", "error", "critical"}
 UUID_PATTERN = re.compile(r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
 
 
@@ -117,6 +124,16 @@ def validate_options(options: dict[str, Any]) -> None:
     if channel not in {"AB", "CD"}:
         raise fail("receiver.channel must be AB or CD")
 
+    antenna = require_type(options["antenna"], dict, "antenna")
+    require_keys(antenna, ANTENNA_KEYS, "antenna")
+    require_type(antenna["enabled"], bool, "antenna.enabled")
+    latitude = require_number(antenna["latitude"], "antenna.latitude")
+    if not -90 <= latitude <= 90:
+        raise fail("antenna.latitude must be between -90 and 90")
+    longitude = require_number(antenna["longitude"], "antenna.longitude")
+    if not -180 <= longitude <= 180:
+        raise fail("antenna.longitude must be between -180 and 180")
+
     web = require_type(options["web"], dict, "web")
     require_keys(web, WEB_KEYS, "web")
     require_type(web["enabled"], bool, "web.enabled")
@@ -159,6 +176,15 @@ def validate_outputs(outputs: Any, name: str) -> None:
         port = require_type(output.get("port"), int, f"{output_name}.port")
         if not 1 <= port <= 65535:
             raise fail(f"{output_name}.port must be between 1 and 65535")
+
+
+def require_number(value: Any, name: str) -> float:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise fail(f"{name} must be a number")
+    number = float(value)
+    if not math.isfinite(number):
+        raise fail(f"{name} must be finite")
+    return number
 
 
 def build_config(
@@ -222,12 +248,24 @@ def build_config(
     config["sharing"] = options["aiscatcher_share"]["enabled"]
     if options["aiscatcher_share"]["enabled"]:
         config["sharing_key"] = options["aiscatcher_share"]["key"]
-    return {"mode": mode, "log_level": options["log_level"], "config": config}
+    log_level = options["log_level"]
+    if log_level == "default":
+        # The add-on UI needs six choices to render this as a dropdown rather
+        # than the five-value radio group used by the current frontend.
+        log_level = "info"
+    return {"mode": mode, "log_level": log_level, "config": config}
 
 
 def resolve_usb_serial(device_path: str, sysfs_root: pathlib.Path | None = None) -> str:
     """Resolve a Supervisor USB device path to the serial AIS-catcher needs."""
-    match = re.fullmatch(r"/dev/bus/usb/(\d{3})/(\d{3})", device_path)
+    original_path = pathlib.Path(device_path)
+    if original_path.is_symlink():
+        try:
+            device_path = str(original_path.resolve(strict=True))
+        except OSError as error:
+            raise fail(f"selected USB device link is broken: {device_path}") from error
+
+    match = re.search(r"(?:^|/)dev/bus/usb/(\d{3})/(\d{3})$", device_path)
     if match is None:
         # Keep accepting the pre-0.1.2 serial form for a one-time migration of
         # manually maintained options. Supervisor's device selector always
@@ -314,7 +352,12 @@ def main() -> int:
     if args.print_redacted:
         print(json.dumps(redact(result["config"]), indent=2))
     else:
-        print(f"{result['mode']}|{result['log_level']}")
+        antenna = options["antenna"]
+        print(
+            f"{result['mode']}|{result['log_level']}|"
+            f"{str(antenna['enabled']).lower()}|"
+            f"{antenna['latitude']}|{antenna['longitude']}"
+        )
     return 0
 
 

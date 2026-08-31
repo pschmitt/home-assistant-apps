@@ -32,6 +32,21 @@ configuration:
       channel:
         name: AIS channel mode
         description: AB receives AIS1 and AIS2; CD is an alternate channel layout.
+  antenna:
+    name: Antenna location
+    description: >-
+      Optional antenna coordinates passed to AIS-catcher for receiver location
+      metadata and map context.
+    fields:
+      enabled:
+        name: Enable antenna location
+        description: Pass the configured coordinates to AIS-catcher.
+      latitude:
+        name: Latitude
+        description: Decimal degrees from -90 to 90.
+      longitude:
+        name: Longitude
+        description: Decimal degrees from -180 to 180.
   web:
     name: Web interface
     description: Enable the AIS-catcher web interface through Home Assistant ingress.
@@ -84,4 +99,6 @@ configuration:
         description: UUID key issued by aiscatcher.org; it is stored as a password.
   log_level:
     name: Log level
-    description: Set the AIS-catcher log verbosity.
+    description: >-
+      Set the AIS-catcher log verbosity. Default uses AIS-catcher's INFO level;
+      the extra default choice keeps this five-level setting as a dropdown.

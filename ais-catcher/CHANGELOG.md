@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.3
+
+- Add an optional antenna latitude/longitude setting using AIS-catcher's native
+  receiver-location option.
+- Add an optional HAOS udev rule that provides a persistent, human-readable
+  `by-id` path for NESDR Smart v5 devices.
+- Render the log-level choices as a dropdown by adding an explicit `default`
+  alias for AIS-catcher's INFO level.
+
 ## 0.1.2
 
 - Use Home Assistant's dynamic USB device selector for the RTL-SDR.

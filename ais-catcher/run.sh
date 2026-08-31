@@ -6,7 +6,7 @@ readonly OPTIONS_PATH=/data/options.json
 readonly CONFIG_PATH=/data/aiscatcher.json
 
 main() {
-  local summary mode log_level
+  local summary mode log_level antenna_enabled antenna_latitude antenna_longitude
   local -a ais_args
 
   if [[ ! -r "${OPTIONS_PATH}" ]]
@@ -18,7 +18,7 @@ main() {
   summary="$(python3 /usr/bin/generate_config.py \
     --options "${OPTIONS_PATH}" \
     --output "${CONFIG_PATH}")"
-  IFS='|' read -r mode log_level <<< "${summary}"
+  IFS='|' read -r mode log_level antenna_enabled antenna_latitude antenna_longitude <<< "${summary}"
 
   printf 'AIS-catcher: generated configuration (%s mode, log level %s).\n' \
     "${mode}" "${log_level}"
@@ -40,6 +40,14 @@ main() {
     -G LEVEL "${log_level^^}"
     -C "${CONFIG_PATH}"
   )
+  if [[ "${antenna_enabled}" == true ]]
+  then
+    printf 'AIS-catcher: receiver antenna location is %s, %s.\n' \
+      "${antenna_latitude}" "${antenna_longitude}"
+    ais_args+=(
+      -Z "${antenna_latitude}" "${antenna_longitude}"
+    )
+  fi
   exec /usr/bin/AIS-catcher "${ais_args[@]}"
 }
 

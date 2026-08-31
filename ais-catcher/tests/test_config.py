@@ -43,7 +43,7 @@ class ConfigGenerationTests(unittest.TestCase):
     def test_minimal_configuration_uses_auto_rtl_sdr_and_ingress_server(self) -> None:
         process, output = self.run_generator("minimal.json")
         self.assertEqual(process.returncode, 0, process.stderr)
-        self.assertEqual(process.stdout.strip(), "hardware|info")
+        self.assertEqual(process.stdout.strip(), "hardware|info|false|0.0|0.0")
         config = json.loads(output.read_text(encoding="utf-8"))
         self.assertEqual(config["receiver"][0]["input"], "rtlsdr")
         self.assertNotIn("serial", config["receiver"][0])
@@ -56,7 +56,7 @@ class ConfigGenerationTests(unittest.TestCase):
     def test_full_configuration_maps_outputs_and_sharing(self) -> None:
         process, output = self.run_generator("full.json")
         self.assertEqual(process.returncode, 0, process.stderr)
-        self.assertEqual(process.stdout.strip(), "hardware|debug")
+        self.assertEqual(process.stdout.strip(), "hardware|debug|true|52.520008|13.404954")
         config = json.loads(output.read_text(encoding="utf-8"))
         receiver = config["receiver"][0]
         self.assertEqual(receiver["serial"], "NESDR-TEST-SERIAL")
@@ -88,6 +88,84 @@ class ConfigGenerationTests(unittest.TestCase):
             config = generate_config.build_config(merged, sysfs_root)["config"]
         self.assertEqual(config["receiver"][0]["serial"], "28567980")
 
+    def test_enabled_antenna_location_is_exported_for_runtime_arguments(self) -> None:
+        process, output = self.run_generator("full.json")
+        self.assertEqual(process.returncode, 0, process.stderr)
+        self.assertEqual(
+            process.stdout.strip(), "hardware|debug|true|52.520008|13.404954"
+        )
+        config = json.loads(output.read_text(encoding="utf-8"))
+        self.assertNotIn("52.520008", json.dumps(config))
+
+    def test_default_log_level_maps_to_ais_catcher_info(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            options = pathlib.Path(temporary_directory) / "options.json"
+            output = pathlib.Path(temporary_directory) / "config.json"
+            base = json.loads((OPTIONS / "minimal.json").read_text(encoding="utf-8"))
+            base["log_level"] = "default"
+            options.write_text(json.dumps(base), encoding="utf-8")
+            process = subprocess.run(
+                [
+                    "python3",
+                    str(GENERATOR),
+                    "--options",
+                    str(options),
+                    "--output",
+                    str(output),
+                ],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        self.assertEqual(process.returncode, 0, process.stderr)
+        self.assertEqual(process.stdout.strip(), "hardware|info|false|0.0|0.0")
+
+    def test_selected_stable_usb_symlink_resolves_to_serial(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = pathlib.Path(temporary_directory)
+            target = root / "dev" / "bus" / "usb" / "001" / "008"
+            target.parent.mkdir(parents=True)
+            target.touch()
+            link = root / "dev" / "ais-catcher" / "by-id" / "nesdr-smart-v5-28567980"
+            link.parent.mkdir(parents=True)
+            link.symlink_to(target)
+            sysfs_root = root / "sys"
+            usb_device = sysfs_root / "1-8"
+            usb_device.mkdir(parents=True)
+            (usb_device / "busnum").write_text("001\n", encoding="utf-8")
+            (usb_device / "devnum").write_text("008\n", encoding="utf-8")
+            (usb_device / "serial").write_text("28567980\n", encoding="utf-8")
+
+            self.assertEqual(
+                generate_config.resolve_usb_serial(str(link), sysfs_root),
+                "28567980",
+            )
+
+    def test_invalid_antenna_latitude_fails_before_writing_configuration(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            options = pathlib.Path(temporary_directory) / "options.json"
+            output = pathlib.Path(temporary_directory) / "config.json"
+            base = json.loads((OPTIONS / "minimal.json").read_text(encoding="utf-8"))
+            base["antenna"]["latitude"] = 90.1
+            options.write_text(json.dumps(base), encoding="utf-8")
+            process = subprocess.run(
+                [
+                    "python3",
+                    str(GENERATOR),
+                    "--options",
+                    str(options),
+                    "--output",
+                    str(output),
+                ],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            output_exists = output.exists()
+        self.assertEqual(process.returncode, 2)
+        self.assertIn("antenna.latitude", process.stderr)
+        self.assertFalse(output_exists)
+
     def test_redacted_output_does_not_contain_sharing_key(self) -> None:
         process, output = self.run_generator("full.json", "--print-redacted")
         self.assertEqual(process.returncode, 0, process.stderr)
@@ -99,7 +177,7 @@ class ConfigGenerationTests(unittest.TestCase):
     def test_no_hardware_mode_is_native_idle_udp_input(self) -> None:
         process, output = self.run_generator("no-hardware.json")
         self.assertEqual(process.returncode, 0, process.stderr)
-        self.assertEqual(process.stdout.strip(), "no-hardware|info")
+        self.assertEqual(process.stdout.strip(), "no-hardware|info|false|0.0|0.0")
         config = json.loads(output.read_text(encoding="utf-8"))
         receiver = config["receiver"][0]
         self.assertEqual(receiver["input"], "udpserver")

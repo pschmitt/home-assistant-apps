@@ -29,6 +29,10 @@ receiver:
   sample_rate: 1536000
   bandwidth: 192000
   channel: AB
+antenna:
+  enabled: false
+  latitude: 0.0
+  longitude: 0.0
 web:
   enabled: true
 udp_outputs: []
@@ -44,16 +48,31 @@ log_level: info
 ```
 
 `device` is an optional Home Assistant device selector filtered to USB
-devices. Select the NESDR's `/dev/bus/usb/...` entry when multiple USB devices
-are present. AIS-catcher uses the selected USB device's serial number
-internally, so the generated configuration remains stable across the app
-container's device enumeration order. If no device is selected, AIS-catcher
-automatically selects the first compatible RTL-SDR. `gain` is either
+devices. On an unmodified HAOS installation, Supervisor may show raw
+`/dev/bus/usb/...` paths for USB devices; those paths are runtime bus addresses
+and can change after a replug. For a persistent, human-readable selector,
+install the included udev rule as described below. The resulting option looks
+like `/dev/ais-catcher/by-id/nesdr-smart-v5-28567980`. AIS-catcher uses the
+selected USB device's serial number internally, so the generated configuration
+remains stable across the app container's device enumeration order. If no
+device is selected, AIS-catcher automatically selects the first compatible
+RTL-SDR. `gain` is either
 `auto` or a tuner gain in dB from 0 to 50. Start with `auto` and adjust only
 after looking at the signal-level and message statistics in the web viewer.
 `ppm` accepts -150 through 150. `channel: AB` covers AIS1 and AIS2 with one
 RTL-SDR; `CD` is available for the alternate channel pair supported by
 AIS-catcher.
+
+`antenna.enabled` passes `antenna.latitude` and `antenna.longitude` to
+AIS-catcher's native receiver-location option. Coordinates are decimal
+degrees. The option is disabled by default; setting a location can expose the
+receiver position to the AIS-catcher viewer and sharing services, so consider
+the privacy implications.
+
+`log_level` is a dropdown with AIS-catcher's `debug`, `info`, `warning`,
+`error`, and `critical` levels. The additional `default` choice is an explicit
+add-on alias for `info`; it keeps the five actual AIS-catcher levels in a
+dropdown in the current Home Assistant frontend.
 
 `udp_outputs` and `tcp_outputs` are lists of NMEA destinations, for example:
 
@@ -96,6 +115,20 @@ The add-on metadata is in the current `config.yaml` format. `build.yaml` is
 retained as an empty compatibility file for this repository; the pinned base
 images and build settings are intentionally declared in the Dockerfile. The
 published image is `ghcr.io/pschmitt/{arch}-home-assistant-app-ais-catcher`.
+
+### Persistent NESDR selector path
+
+The standard Home Assistant app `device` schema can display a persistent
+`by-id` link when udev provides one. Raw RTL-SDR USB devices do not create a
+serial-port link automatically, so this repository includes
+`udev/99-ais-catcher.rules`, which creates one for the NESDR Smart v5. To use
+it on HAOS, copy the file to the `udev/` directory of a `CONFIG` USB drive and
+run `ha os import`, or place the rule in `/etc/udev/rules.d/` using the HAOS
+host shell. Replug the receiver or reboot the host after importing it, then
+refresh the app configuration page. The selector should show a path such as
+`/dev/ais-catcher/by-id/nesdr-smart-v5-28567980` instead of the transient bus
+address. The rule matches the Nooelec model and includes the dongle's stable
+serial number, so it also distinguishes multiple NESDR Smart v5 receivers.
 
 ## Connecting and checking the NESDR Smart v5
 
@@ -219,10 +252,11 @@ or proxy that protocol.
 
 Check `ha hardware info`, then inspect kernel USB logs. Restart the app after
 plugging in the dongle. In the app log, AIS-catcher's `-l JSON on` output should
-include the RTL-SDR. If several devices
-are present, select the intended `/dev/bus/usb/...` entry in the app
-configuration. The app resolves that path to the radio's serial number before
-starting AIS-catcher.
+include the RTL-SDR. If several devices are present, select the intended NESDR
+by its persistent `/dev/ais-catcher/by-id/...` path in the app configuration.
+If the udev rule has not been installed, select the current raw USB path and
+restart the app after any replug so Supervisor can refresh it. The app resolves
+either path to the radio's serial number before starting AIS-catcher.
 
 ### Permission or access failure
 
