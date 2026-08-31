@@ -17,6 +17,7 @@ EOF
 main() {
   local summary mode log_level antenna_enabled antenna_latitude antenna_longitude
   local mqtt_enabled mqtt_host mqtt_port mqtt_username mqtt_password mqtt_ssl
+  local mqtt_service_ready
   local no_hardware
   local -a ais_args generator_args
 
@@ -52,16 +53,34 @@ main() {
     return 2
   fi
 
-  mqtt_enabled="$(bashio::config 'mqtt.enabled')"
+  if ! mqtt_enabled="$(jq --raw-output '.mqtt.enabled // false' "${OPTIONS_PATH}")"
+  then
+    printf 'AIS-catcher: cannot read mqtt.enabled from %s.\n' "${OPTIONS_PATH}" >&2
+    return 2
+  fi
   if [[ "${mqtt_enabled}" == true ]]
   then
-    if ! mqtt_host="$(bashio::services mqtt 'host')" \
+    mqtt_service_ready=false
+    for attempt in {1..30}
+    do
+      if bashio::services.available mqtt
+      then
+        mqtt_service_ready=true
+        break
+      fi
+      if (( attempt < 30 ))
+      then
+        sleep 1
+      fi
+    done
+    if [[ "${mqtt_service_ready}" != true ]] \
+      || ! mqtt_host="$(bashio::services mqtt 'host')" \
       || ! mqtt_port="$(bashio::services mqtt 'port')" \
       || ! mqtt_username="$(bashio::services mqtt 'username')" \
       || ! mqtt_password="$(bashio::services mqtt 'password')" \
       || ! mqtt_ssl="$(bashio::services mqtt 'ssl')"
     then
-      printf 'AIS-catcher: MQTT is enabled, but the Home Assistant MQTT service is unavailable.\n' >&2
+      printf 'AIS-catcher: MQTT is enabled, but the Home Assistant MQTT service is unavailable after waiting 30 seconds.\n' >&2
       printf 'AIS-catcher: install/start the Mosquitto broker or disable mqtt.enabled.\n' >&2
       return 2
     fi

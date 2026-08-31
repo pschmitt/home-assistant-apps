@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.7
+
+- Wait for Supervisor MQTT service discovery to become available during app startup.
+- Read the local MQTT enable flag directly from the Supervisor-provided options file.
+
 ## 0.1.6
 
 - Add optional native AIS-catcher MQTT output using Home Assistant's discovered
