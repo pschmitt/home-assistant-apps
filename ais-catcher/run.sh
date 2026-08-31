@@ -17,7 +17,7 @@ EOF
 main() {
   local summary mode log_level antenna_enabled antenna_latitude antenna_longitude
   local mqtt_enabled mqtt_host mqtt_port mqtt_username mqtt_password mqtt_ssl
-  local mqtt_service mqtt_service_ready
+  local mqtt_service mqtt_service_ready mqtt_service_response supervisor_api
   local no_hardware
   local -a ais_args generator_args
 
@@ -61,9 +61,14 @@ main() {
   if [[ "${mqtt_enabled}" == true ]]
   then
     mqtt_service_ready=false
+    supervisor_api="${__BASHIO_SUPERVISOR_API:-http://supervisor}"
     for attempt in {1..30}
     do
-      if mqtt_service="$(bashio::services mqtt 2>/dev/null)" \
+      if mqtt_service_response="$(curl --silent --show-error --fail \
+        -H "Authorization: Bearer ${SUPERVISOR_TOKEN}" \
+        "${supervisor_api}/services/mqtt" 2>/dev/null)" \
+        && mqtt_service="$(jq --compact-output --exit-status '.data // empty' \
+          <<< "${mqtt_service_response}")" \
         && mqtt_host="$(jq --raw-output --exit-status '.host // empty' <<< "${mqtt_service}")" \
         && mqtt_port="$(jq --raw-output --exit-status '.port // empty' <<< "${mqtt_service}")" \
         && mqtt_username="$(jq --raw-output '.username // empty' <<< "${mqtt_service}")" \
