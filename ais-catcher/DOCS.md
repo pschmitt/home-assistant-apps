@@ -81,6 +81,32 @@ channel from a receiver, USB, or output failure. Zero decoded messages are
 expected when no vessel is transmitting within reception range; the app does
 not restart the receiver merely because the count is zero.
 
+### Community station marked as lagging
+
+The community map can mark a station as lagging when it has not received a
+recent useful AIS update from that station. In practice, a position-bearing
+message is the meaningful update for the map. This is a data-age indicator,
+not proof that the add-on, USB connection, or community TCP session has
+failed. A quiet channel can produce this state, especially when there are no
+vessels within radio range. AIS-catcher must not send fabricated messages to
+keep a station looking active.
+
+Use the following signals together when diagnosing this state:
+
+* increasing `received` bytes and a running receiver show that RTL-SDR samples
+  are still arriving;
+* `total.count` and `last_minute.count` show whether AIS messages were decoded;
+* `outputs[].stats.connected` and `outputs[].stats.dropped` show the state of
+  the community and MQTT outputs;
+* an AIS message such as type 12 may be valid traffic but has no vessel
+  position, so it does not necessarily create a vessel on the map.
+
+The first real position-bearing message from a vessel should normally clear
+the inactivity symptom upstream. If `received` stops increasing, the receiver
+logs repeated timeouts or device errors, or an output reports reconnects or
+drops, investigate the corresponding hardware, antenna, network, or service
+problem instead.
+
 The `nmea` section contains UDP and TCP NMEA destinations, for example:
 
 ```yaml
