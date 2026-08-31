@@ -9,7 +9,8 @@ three-dot menu, choose **Repositories**, and add:
 https://github.com/pschmitt/home-assistant-apps
 ```
 
-Install **AIS-catcher**. The app is built for `amd64` and `aarch64`, which
+Install **AIS-catcher**. The app is built for `amd64` and `aarch64`, and its
+multi-architecture images are published to GHCR for Supervisor to pull. This
 includes generic x86-64 systems and 64-bit Raspberry Pi Home Assistant OS
 installations. The add-on has no public port mapping; its web viewer is
 available through Home Assistant ingress.
@@ -42,8 +43,11 @@ aiscatcher_share:
 log_level: info
 ```
 
-`receiver.device` is `auto` by default. For multiple RTL-SDR devices, set it
-to the serial number printed by the startup enumeration. `gain` is either
+`receiver.device` is `auto` by default. This is intentionally a text field:
+Home Assistant's app `device` selector lists `/dev` device paths, while an
+RTL-SDR accessed through `usb: true` is selected by AIS-catcher's libusb
+serial number. For multiple RTL-SDR devices, set it to the serial number
+printed by the startup enumeration. `gain` is either
 `auto` or a tuner gain in dB from 0 to 50. Start with `auto` and adjust only
 after looking at the signal-level and message statistics in the web viewer.
 `ppm` accepts -150 through 150. `channel: AB` covers AIS1 and AIS2 with one
@@ -89,7 +93,8 @@ The sharing protocol and wire format remain upstream AIS-catcher behavior.
 
 The add-on metadata is in the current `config.yaml` format. `build.yaml` is
 retained as an empty compatibility file for this repository; the pinned base
-images and build settings are intentionally declared in the Dockerfile.
+images and build settings are intentionally declared in the Dockerfile. The
+published image is `ghcr.io/pschmitt/{arch}-home-assistant-app-ais-catcher`.
 
 ## Connecting and checking the NESDR Smart v5
 

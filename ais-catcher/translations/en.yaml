@@ -1,0 +1,87 @@
+---
+configuration:
+  hardware_required:
+    name: Require RTL-SDR hardware
+    description: >-
+      Keep enabled for normal reception. Disable only for development without
+      an SDR; this does not generate or simulate AIS messages.
+  receiver:
+    name: Receiver
+    description: Configure the RTL-SDR receiver and AIS channels.
+    fields:
+      device:
+        name: RTL-SDR device
+        description: >-
+          Use auto to select the first compatible receiver, or enter its
+          AIS-catcher serial number when multiple SDRs are connected.
+      gain:
+        name: Tuner gain
+        description: Use auto initially, or enter a fixed gain in dB from 0 to 50.
+      ppm:
+        name: PPM correction
+        description: Frequency correction for the SDR, from -150 to 150 PPM.
+      rtlagc:
+        name: RTL AGC
+        description: Enable the RTL-SDR automatic gain control.
+      sample_rate:
+        name: Sample rate
+        description: RTL-SDR sample rate in samples per second.
+      bandwidth:
+        name: Channel bandwidth
+        description: AIS channel bandwidth in Hz; use 0 for the AIS-catcher default.
+      channel:
+        name: AIS channel mode
+        description: AB receives AIS1 and AIS2; CD is an alternate channel layout.
+  web:
+    name: Web interface
+    description: Enable the AIS-catcher web interface through Home Assistant ingress.
+    fields:
+      enabled:
+        name: Enable web interface
+        description: Make the built-in AIS-catcher viewer available through ingress.
+  udp_outputs:
+    name: UDP NMEA outputs
+    description: Forward locally decoded AIS NMEA sentences to UDP destinations.
+    fields:
+      host:
+        name: Destination host
+        description: Hostname or IP address of the UDP consumer.
+      port:
+        name: Destination port
+        description: UDP destination port.
+  tcp_outputs:
+    name: TCP NMEA outputs
+    description: Forward locally decoded AIS NMEA sentences to TCP destinations.
+    fields:
+      host:
+        name: Destination host
+        description: Hostname or IP address of the TCP consumer.
+      port:
+        name: Destination port
+        description: TCP destination port.
+  aishub:
+    name: AISHub sharing
+    description: Share only locally received AIS NMEA data with AISHub.
+    fields:
+      enabled:
+        name: Enable AISHub
+        description: Send locally decoded AIS data to the configured AISHub endpoint.
+      host:
+        name: AISHub host
+        description: AISHub station endpoint hostname.
+      port:
+        name: AISHub port
+        description: AISHub station endpoint UDP port.
+  aiscatcher_share:
+    name: AIS-catcher community sharing
+    description: Use AIS-catcher's upstream community-sharing network.
+    fields:
+      enabled:
+        name: Enable community sharing
+        description: Enable the upstream AIS-catcher community feed.
+      key:
+        name: Community key
+        description: UUID key issued by aiscatcher.org; it is stored as a password.
+  log_level:
+    name: Log level
+    description: Set the AIS-catcher log verbosity.
