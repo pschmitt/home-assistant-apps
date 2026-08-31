@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.9
+
+- Correctly handle the MQTT service's boolean SSL value during startup.
+
 ## 0.1.8
 
 - Avoid noisy Supervisor API errors while waiting for MQTT service discovery.

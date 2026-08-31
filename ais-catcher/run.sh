@@ -68,7 +68,7 @@ main() {
         && mqtt_port="$(jq --raw-output --exit-status '.port // empty' <<< "${mqtt_service}")" \
         && mqtt_username="$(jq --raw-output '.username // empty' <<< "${mqtt_service}")" \
         && mqtt_password="$(jq --raw-output '.password // empty' <<< "${mqtt_service}")" \
-        && mqtt_ssl="$(jq --raw-output '.ssl // empty' <<< "${mqtt_service}")" \
+        && mqtt_ssl="$(jq --raw-output '.ssl | tostring' <<< "${mqtt_service}")" \
         && [[ "${mqtt_ssl}" == true || "${mqtt_ssl}" == false ]]
       then
         mqtt_service_ready=true
