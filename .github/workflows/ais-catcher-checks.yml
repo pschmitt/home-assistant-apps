@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Install YAML validator
-        run: sudo apt-get update && sudo apt-get install --yes yq
+        run: sudo apt-get update && sudo apt-get install --yes jq yq
       - name: Run checks
         run: |
           ./ais-catcher/tests/check.sh
@@ -45,8 +45,20 @@ jobs:
           do
             if curl --fail --silent http://127.0.0.1:8100/ >/dev/null
             then
+              break
+            fi
+            sleep 1
+          done
+          docker exec ais-catcher-test python3 -c 'import socket; socket.socket(socket.AF_INET, socket.SOCK_DGRAM).sendto(b"!AIVDM,1,1,,B,3776k`5000a3SLPEKnDQQWpH0000,0*78\n", ("127.0.0.1", 10110))'
+          for attempt in {1..10}
+          do
+            stats=$(curl --fail --silent 'http://127.0.0.1:8100/api/stat.json?receiver=0')
+            if jq -e '.session.count >= 1' <<< "${stats}" >/dev/null
+            then
+              echo "no-hardware NMEA decoder path: OK"
               exit 0
             fi
             sleep 1
           done
+          echo "no-hardware NMEA decoder path did not decode fixture" >&2
           exit 1
