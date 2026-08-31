@@ -57,10 +57,12 @@ RTL-SDR; `CD` is available for the alternate channel pair supported by
 AIS-catcher.
 
 `antenna.enabled` passes `antenna.latitude` and `antenna.longitude` to
-AIS-catcher's native receiver-location option. Coordinates are decimal
-degrees. The option is disabled by default; setting a location can expose the
-receiver position to the AIS-catcher viewer and sharing services, so consider
-the privacy implications.
+AIS-catcher's native receiver-location option and to the web server's station
+location. The web server's `share_loc` setting is enabled at the same time so
+the viewer can calculate station range and distances. Coordinates are decimal
+degrees. The option is disabled by default; enabling it exposes the receiver
+position to the AIS-catcher viewer and sharing services, so consider the
+privacy implications.
 
 `log_level` is a dropdown with AIS-catcher's `debug`, `info`, `warning`,
 `error`, and `critical` levels. The additional `default` choice is an explicit

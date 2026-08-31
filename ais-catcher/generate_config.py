@@ -247,7 +247,16 @@ def build_config(
             }
         )
     if options["web"]["enabled"]:
-        config["server"] = [{"active": True, "port": 8100}]
+        server: dict[str, Any] = {"active": True, "port": 8100}
+        if options["antenna"]["enabled"]:
+            server.update(
+                {
+                    "lat": options["antenna"]["latitude"],
+                    "lon": options["antenna"]["longitude"],
+                    "share_loc": True,
+                }
+            )
+        config["server"] = [server]
     else:
         config["server"] = []
     config["sharing"] = options["aiscatcher_share"]["enabled"]

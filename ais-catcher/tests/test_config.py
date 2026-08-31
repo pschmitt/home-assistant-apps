@@ -71,17 +71,26 @@ class ConfigGenerationTests(unittest.TestCase):
             "host": "ais-consumer.example",
             "port": 4001,
         }])
+        self.assertEqual(config["server"], [{
+            "active": True,
+            "port": 8100,
+            "lat": 52.520008,
+            "lon": 13.404954,
+            "share_loc": True,
+        }])
         self.assertTrue(config["sharing"])
         self.assertEqual(config["sharing_key"], "123e4567-e89b-12d3-a456-426614174000")
 
-    def test_enabled_antenna_location_is_exported_for_runtime_arguments(self) -> None:
+    def test_enabled_antenna_location_is_exported_to_web_server(self) -> None:
         process, output = self.run_generator("full.json")
         self.assertEqual(process.returncode, 0, process.stderr)
         self.assertEqual(
             process.stdout.strip(), "hardware|debug|true|52.520008|13.404954"
         )
         config = json.loads(output.read_text(encoding="utf-8"))
-        self.assertNotIn("52.520008", json.dumps(config))
+        self.assertEqual(config["server"][0]["lat"], 52.520008)
+        self.assertEqual(config["server"][0]["lon"], 13.404954)
+        self.assertTrue(config["server"][0]["share_loc"])
 
     def test_default_log_level_maps_to_ais_catcher_info(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:

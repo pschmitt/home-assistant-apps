@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.5
+
+- Publish the configured antenna coordinates to the AIS-catcher web viewer so
+  station range and distance calculations are available.
+
 ## 0.1.4
 
 - Group UDP and TCP NMEA destinations under one `nmea` configuration section.

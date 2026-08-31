@@ -1,5 +1,5 @@
 name: AIS-catcher
-version: 0.1.4
+version: 0.1.5
 slug: ais-catcher
 description: Receive and share AIS traffic with an RTL-SDR and AIS-catcher
 url: https://github.com/pschmitt/home-assistant-apps/tree/main/ais-catcher
