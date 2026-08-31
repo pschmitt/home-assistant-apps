@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.15
+
+- Explicitly disable GPS lookup when a fixed antenna location is configured,
+  keeping the station location available to the web viewer and range tools.
+
 ## 0.1.14
 
 - Emit AIS-catcher decoder statistics every 60 seconds so quiet RF conditions

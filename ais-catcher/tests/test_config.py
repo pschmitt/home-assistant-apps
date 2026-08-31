@@ -77,6 +77,7 @@ class ConfigGenerationTests(unittest.TestCase):
             "lat": 52.520008,
             "lon": 13.404954,
             "share_loc": True,
+            "use_gps": False,
         }])
         self.assertTrue(config["sharing"])
         self.assertEqual(config["sharing_key"], "123e4567-e89b-12d3-a456-426614174000")
@@ -91,6 +92,7 @@ class ConfigGenerationTests(unittest.TestCase):
         self.assertEqual(config["server"][0]["lat"], 52.520008)
         self.assertEqual(config["server"][0]["lon"], 13.404954)
         self.assertTrue(config["server"][0]["share_loc"])
+        self.assertFalse(config["server"][0]["use_gps"])
 
     def test_default_log_level_maps_to_ais_catcher_info(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:

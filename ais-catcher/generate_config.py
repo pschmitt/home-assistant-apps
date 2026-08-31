@@ -287,6 +287,7 @@ def build_config(
                     "lat": options["antenna"]["latitude"],
                     "lon": options["antenna"]["longitude"],
                     "share_loc": True,
+                    "use_gps": False,
                 }
             )
         config["server"] = [server]
