@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.14
+
+- Emit AIS-catcher decoder statistics every 60 seconds so quiet RF conditions
+  are distinguishable from a stalled receiver or output feed.
+
 ## 0.1.13
 
 - Enable RTL-SDR AGC by default, matching AIS-catcher's documented RTL-SDR

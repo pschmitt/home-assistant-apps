@@ -9,6 +9,10 @@ This app is currently experimental. USB device initialization has been tested
 with a Nooelec NESDR Smart v5, but reception quality depends on the antenna,
 location, and local AIS traffic.
 
+The app emits AIS-catcher decoder statistics every 60 seconds. This makes a
+quiet channel visible in the logs without treating the absence of nearby
+vessels as a receiver failure.
+
 See [DOCS.md](DOCS.md) for installation, configuration, troubleshooting, and
 the hardware validation checklist.
 

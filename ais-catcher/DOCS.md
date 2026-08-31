@@ -75,6 +75,12 @@ privacy implications.
 add-on alias for `info`; it keeps the five actual AIS-catcher levels in a
 dropdown in the current Home Assistant frontend.
 
+The app enables AIS-catcher's native statistics output every 60 seconds. The
+statistics include decoded message counts and help distinguish a quiet radio
+channel from a receiver, USB, or output failure. Zero decoded messages are
+expected when no vessel is transmitting within reception range; the app does
+not restart the receiver merely because the count is zero.
+
 The `nmea` section contains UDP and TCP NMEA destinations, for example:
 
 ```yaml
@@ -171,6 +177,10 @@ After connecting the receiver:
    loop. `cannot find device`, `no devices available`, `cannot open device`,
    or `access denied` indicate a host/USB/driver problem, not a reception
    result.
+   The periodic statistics line is the useful next check: increasing raw
+   sample input with zero decoded messages indicates that the receiver is
+   running but has not found valid AIS traffic; increasing message counts
+   confirm decoder activity.
 4. Open the app from the Home Assistant sidebar and check the receiver,
    signal, and message statistics. A map with no vessels is not by itself
    proof that the radio is broken; continue with the antenna and frequency

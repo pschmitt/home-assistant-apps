@@ -141,6 +141,7 @@ main() {
 
   ais_args=(
     -G LEVEL "${log_level^^}"
+    -v 60
     -C "${CONFIG_PATH}"
   )
   if [[ "${antenna_enabled}" == true ]]
