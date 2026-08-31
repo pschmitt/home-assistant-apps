@@ -17,7 +17,7 @@ EOF
 main() {
   local summary mode log_level antenna_enabled antenna_latitude antenna_longitude
   local mqtt_enabled mqtt_host mqtt_port mqtt_username mqtt_password mqtt_ssl
-  local mqtt_service_ready
+  local mqtt_service mqtt_service_ready
   local no_hardware
   local -a ais_args generator_args
 
@@ -63,7 +63,13 @@ main() {
     mqtt_service_ready=false
     for attempt in {1..30}
     do
-      if bashio::services.available mqtt
+      if mqtt_service="$(bashio::services mqtt 2>/dev/null)" \
+        && mqtt_host="$(jq --raw-output --exit-status '.host // empty' <<< "${mqtt_service}")" \
+        && mqtt_port="$(jq --raw-output --exit-status '.port // empty' <<< "${mqtt_service}")" \
+        && mqtt_username="$(jq --raw-output '.username // empty' <<< "${mqtt_service}")" \
+        && mqtt_password="$(jq --raw-output '.password // empty' <<< "${mqtt_service}")" \
+        && mqtt_ssl="$(jq --raw-output '.ssl // empty' <<< "${mqtt_service}")" \
+        && [[ "${mqtt_ssl}" == true || "${mqtt_ssl}" == false ]]
       then
         mqtt_service_ready=true
         break
@@ -73,12 +79,7 @@ main() {
         sleep 1
       fi
     done
-    if [[ "${mqtt_service_ready}" != true ]] \
-      || ! mqtt_host="$(bashio::services mqtt 'host')" \
-      || ! mqtt_port="$(bashio::services mqtt 'port')" \
-      || ! mqtt_username="$(bashio::services mqtt 'username')" \
-      || ! mqtt_password="$(bashio::services mqtt 'password')" \
-      || ! mqtt_ssl="$(bashio::services mqtt 'ssl')"
+    if [[ "${mqtt_service_ready}" != true ]]
     then
       printf 'AIS-catcher: MQTT is enabled, but the Home Assistant MQTT service is unavailable after waiting 30 seconds.\n' >&2
       printf 'AIS-catcher: install/start the Mosquitto broker or disable mqtt.enabled.\n' >&2

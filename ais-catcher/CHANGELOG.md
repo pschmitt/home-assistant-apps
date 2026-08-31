@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.8
+
+- Avoid noisy Supervisor API errors while waiting for MQTT service discovery.
+- Fetch the MQTT service details in one redacted-in-memory request per retry.
+
 ## 0.1.7
 
 - Wait for Supervisor MQTT service discovery to become available during app startup.
