@@ -72,7 +72,7 @@ as a Home Assistant app.
 
 Expose your raspicam.
 
-## pilight
+## [<img src="https://brands.home-assistant.io/pilight/icon.png" alt="" width="32" height="32" style="vertical-align: middle;">](pilight/) pilight
 
 **⚠️ DEPRECATED** Please use [another addon](https://github.com/philipp-luettecke/hassio-addons/) (or fork)
 
