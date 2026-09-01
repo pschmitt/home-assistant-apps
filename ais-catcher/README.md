@@ -13,6 +13,11 @@ The app emits AIS-catcher decoder statistics every 60 seconds. This makes a
 quiet channel visible in the logs without treating the absence of nearby
 vessels as a receiver failure.
 
+The web viewer's ship and statistics history is backed up to the app's own
+persistent storage every 10 minutes and restored on startup, so a restart or
+update no longer discards it. This is separate from the app's Home Assistant
+configuration, which is unaffected either way.
+
 See [DOCS.md](DOCS.md) for installation, configuration, troubleshooting, and
 the hardware validation checklist.
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.17
+
+- Persist the web viewer's ship and statistics state across restarts and
+  updates by backing it up to the add-on's own persistent volume every 10
+  minutes. Previously a restart silently discarded all runtime history;
+  add-on configuration (`options.json`) is unaffected.
+
 ## 0.1.16
 
 - Wait up to 60 seconds for Supervisor MQTT service discovery while retaining a

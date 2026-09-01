@@ -49,7 +49,12 @@ class ConfigGenerationTests(unittest.TestCase):
         self.assertNotIn("serial", config["receiver"][0])
         self.assertEqual(config["receiver"][0]["rtlsdr"]["tuner"], "auto")
         self.assertEqual(config["receiver"][0]["rtlsdr"]["freqoffset"], 0)
-        self.assertEqual(config["server"], [{"active": True, "port": 8100}])
+        self.assertEqual(config["server"], [{
+            "active": True,
+            "port": 8100,
+            "file": generate_config.WEB_VIEWER_BACKUP_FILE,
+            "backup": generate_config.WEB_VIEWER_BACKUP_INTERVAL_MINUTES,
+        }])
         self.assertEqual(config["udp"], [])
         self.assertEqual(config["tcp"], [])
 
@@ -74,6 +79,8 @@ class ConfigGenerationTests(unittest.TestCase):
         self.assertEqual(config["server"], [{
             "active": True,
             "port": 8100,
+            "file": generate_config.WEB_VIEWER_BACKUP_FILE,
+            "backup": generate_config.WEB_VIEWER_BACKUP_INTERVAL_MINUTES,
             "lat": 52.520008,
             "lon": 13.404954,
             "share_loc": True,

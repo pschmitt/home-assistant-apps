@@ -46,6 +46,12 @@ DEFAULTS: dict[str, Any] = {
     "log_level": "info",
 }
 
+# The web viewer keeps ship/statistics state in memory only unless given a
+# backup file; without one, a restart silently discards everything. Both
+# live under /data, the add-on's own persistent volume, not in options.json.
+WEB_VIEWER_BACKUP_FILE = "/data/aiscatcher-stats.bin"
+WEB_VIEWER_BACKUP_INTERVAL_MINUTES = 10
+
 TOP_LEVEL_KEYS = set(DEFAULTS)
 LEGACY_TOP_LEVEL_KEYS = {
     "device",
@@ -280,7 +286,15 @@ def build_config(
             }
         )
     if options["web"]["enabled"]:
-        server: dict[str, Any] = {"active": True, "port": 8100}
+        server: dict[str, Any] = {
+            "active": True,
+            "port": 8100,
+            # Persist the web viewer's ship/statistics state (not add-on
+            # config) across restarts and updates. /data is the add-on's own
+            # persistent volume, separate from options.json.
+            "file": WEB_VIEWER_BACKUP_FILE,
+            "backup": WEB_VIEWER_BACKUP_INTERVAL_MINUTES,
+        }
         if options["antenna"]["enabled"]:
             server.update(
                 {
