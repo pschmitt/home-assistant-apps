@@ -4,7 +4,7 @@
 
 Home Assistant apps by Philipp Schmitt
 
-## AIS-catcher
+## [<img src="ais-catcher/icon.png" alt="" width="32" height="32">](ais-catcher/) AIS-catcher
 
 The [`ais-catcher/`](ais-catcher/) app receives AIS traffic with an RTL-SDR
 and the upstream AIS-catcher decoder. It supports Home Assistant ingress,
@@ -59,11 +59,11 @@ For more information, check the Home Assistant Forum at https://community.home-a
 
 Check the [flic component page at home-assistant.io](https://www.home-assistant.io/components/binary_sensor.flic/).
 
-## avahi-reflector
+## [<img src="avahi-reflector/icon.png" alt="" width="32" height="32">](avahi-reflector/) avahi-reflector
 
 avahi-reflector to bridge mDNS.
 
-## keepalived
+## [<img src="keepalived/icon.png" alt="" width="32" height="32">](keepalived/) keepalived
 
 [osixia/docker-keepalived](https://github.com/osixia/docker-keepalived) packaged
 as a Home Assistant app.
@@ -76,15 +76,15 @@ Expose your raspicam.
 
 **⚠️ DEPRECATED** Please use [another addon](https://github.com/philipp-luettecke/hassio-addons/) (or fork)
 
-## Tailscale
+## [<img src="tailscale/icon.png" alt="" width="32" height="32">](tailscale/) Tailscale
 
 [Tailscale](https://tailscale.com) VPN service. This app was originally published [here](https://github.com/tsujamin/hass-addons/tree/main/tailscale).
 
-## Zabbix Agent
+## [<img src="zabbix-agent/icon.png" alt="" width="32" height="32">](zabbix-agent/) Zabbix Agent
 
 Uses zabbix-agent package from current alpine version.
 
-## Zabbix Agent 2
+## [<img src="zabbix-agent2/icon.png" alt="" width="32" height="32">](zabbix-agent2/) Zabbix Agent 2
 
 Uses zabbix-agent2 package from current alpine version, also includes PostgreSQL and MongoDB plug-ins.
 
