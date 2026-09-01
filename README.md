@@ -4,7 +4,7 @@
 
 Home Assistant apps by Philipp Schmitt
 
-## [<img src="ais-catcher/icon.png" alt="" width="32" height="32">](ais-catcher/) AIS-catcher
+## [<img src="ais-catcher/icon.png" alt="" width="32" height="32" style="vertical-align: middle;">](ais-catcher/) AIS-catcher
 
 The [`ais-catcher/`](ais-catcher/) app receives AIS traffic with an RTL-SDR
 and the upstream AIS-catcher decoder. It supports Home Assistant ingress,
