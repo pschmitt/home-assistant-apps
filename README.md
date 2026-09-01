@@ -24,15 +24,15 @@ native NMEA outputs, AISHub, and optional AIS-catcher community sharing. An
 explicit no-hardware development mode is available for validation before an
 SDR is installed.
 
+## [<img src="avahi-reflector/icon.png" alt="" width="32" height="32">](avahi-reflector/) avahi-reflector
+
+avahi-reflector to bridge mDNS.
+
 ## [<picture><source media="(prefers-color-scheme: dark)" srcset="https://brands.home-assistant.io/flic/dark_icon.png"><img src="https://brands.home-assistant.io/flic/icon.png" alt="" width="32" height="32" style="vertical-align: middle;"></picture>](flicd/) flicd
 
 React to Flic button presses on the Raspberry Pi. See the
 [flicd documentation](flicd/README.md) for installation, configuration, and
 usage instructions.
-
-## [<img src="avahi-reflector/icon.png" alt="" width="32" height="32">](avahi-reflector/) avahi-reflector
-
-avahi-reflector to bridge mDNS.
 
 ## [<img src="keepalived/icon.png" alt="" width="32" height="32">](keepalived/) keepalived
 
