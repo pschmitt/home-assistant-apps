@@ -4,14 +4,6 @@
 
 Home Assistant apps by Philipp Schmitt
 
-## [<img src="ais-catcher/icon.png" alt="" width="32" height="32" style="vertical-align: middle;">](ais-catcher/) AIS-catcher
-
-The [`ais-catcher/`](ais-catcher/) app receives AIS traffic with an RTL-SDR
-and the upstream AIS-catcher decoder. It supports Home Assistant ingress,
-native NMEA outputs, AISHub, and optional AIS-catcher community sharing. An
-explicit no-hardware development mode is available for validation before an
-SDR is installed.
-
 Add to Home Assistant using the repository url:
 https://github.com/pschmitt/home-assistant-apps
 
@@ -24,7 +16,15 @@ https://github.com/pschmitt/home-assistant-apps
 > 2. Add the new URL: `https://github.com/pschmitt/home-assistant-apps`
 >    (or use the badge above)
 
-## flicd
+## [<img src="ais-catcher/icon.png" alt="" width="32" height="32" style="vertical-align: middle;">](ais-catcher/) AIS-catcher
+
+The [`ais-catcher/`](ais-catcher/) app receives AIS traffic with an RTL-SDR
+and the upstream AIS-catcher decoder. It supports Home Assistant ingress,
+native NMEA outputs, AISHub, and optional AIS-catcher community sharing. An
+explicit no-hardware development mode is available for validation before an
+SDR is installed.
+
+## [<img src="https://brands.home-assistant.io/flic/icon.png" alt="" width="32" height="32" style="vertical-align: middle;">](flicd/) flicd
 
 React to flic button presses on the Raspberry Pi.
 
