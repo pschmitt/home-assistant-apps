@@ -38,6 +38,12 @@ nmea:
   tcp_outputs: []
 mqtt:
   enabled: false
+  use_ha_service: true
+  host: ""
+  port: 1883
+  tls: false
+  username: ""
+  password: ""
   topic: ais-catcher/ais
   msgformat: JSON_FULL
   qos: 0
@@ -127,24 +133,52 @@ app never fetches AISstream or any other public AIS API.
 
 ## MQTT output
 
-The app can publish the locally decoded AIS stream to the Home Assistant MQTT
-broker. Enable MQTT output in the app configuration:
+The app can publish the locally decoded AIS stream over MQTT. Enable MQTT
+output in the app configuration:
 
 ```yaml
 mqtt:
   enabled: true
+  use_ha_service: true
   topic: ais-catcher/ais
   msgformat: JSON_FULL
   qos: 0
   client_id: ais-catcher
 ```
 
-The app declares `mqtt:want` and obtains the broker host, port, TLS setting,
-username, and password from Supervisor's MQTT service discovery. Do not enter
-broker credentials in the AIS-catcher options. If no MQTT broker is available,
-the app continues to work while MQTT is disabled; enabling it without a
-discoverable broker is a startup error after a bounded 60-second discovery
-wait.
+By default (`use_ha_service: true`) the app declares `mqtt:want` and obtains
+the broker host, port, TLS setting, username, and password from Supervisor's
+MQTT service discovery. Do not enter broker credentials in the AIS-catcher
+options in this mode. If no MQTT broker is available, the app continues to
+work while MQTT is disabled; enabling it without a discoverable broker is a
+startup error after a bounded 60-second discovery wait.
+
+To publish to a different broker instead of the one Home Assistant
+discovers — for example an external Mosquitto instance, a cloud MQTT
+broker, or a second local broker — set `use_ha_service: false` and provide
+the broker directly:
+
+```yaml
+mqtt:
+  enabled: true
+  use_ha_service: false
+  host: mqtt.example.com
+  port: 1883
+  tls: false
+  username: ais-catcher
+  password: "correct-horse-battery-staple"
+  topic: ais-catcher/ais
+  msgformat: JSON_FULL
+  qos: 0
+  client_id: ais-catcher
+```
+
+`host` and `port` are required when `use_ha_service` is disabled; `username`
+and `password` may be left empty for a broker that allows anonymous
+connections. `tls` selects `MQTTS` instead of `MQTT` for the connection. The
+`username`/`password` fields are only used in this mode — they are ignored
+(and the discovered service's own credentials are used instead) when
+`use_ha_service: true`.
 
 `JSON_FULL` is the recommended format because it includes decoded fields such
 as MMSI, message type, latitude, longitude, speed, and the original NMEA
@@ -325,11 +359,17 @@ does not require full privileged mode. Replug the device and restart the app.
 
 ### MQTT output unavailable
 
-Confirm that the Mosquitto broker app is installed and running, and that the
-Home Assistant MQTT integration is configured. When MQTT is enabled, the app
-obtains the broker details through Supervisor service discovery. If the broker
-cannot be discovered, the app reports that condition and exits rather than
-silently dropping messages. Keep MQTT disabled until the broker is available.
+With `mqtt.use_ha_service: true` (the default), confirm that the Mosquitto
+broker app is installed and running, and that the Home Assistant MQTT
+integration is configured. The app obtains the broker details through
+Supervisor service discovery. If the broker cannot be discovered, the app
+reports that condition and exits rather than silently dropping messages. Keep
+MQTT disabled until the broker is available.
+
+With `mqtt.use_ha_service: false`, confirm `mqtt.host` and `mqtt.port` point
+at a reachable broker and that `mqtt.username`/`mqtt.password`/`mqtt.tls`
+match its configuration; the app validates that `host` is non-empty and
+`port` is set before starting.
 
 The generated configuration contains the broker password. Inspect it only
 with redaction enabled:

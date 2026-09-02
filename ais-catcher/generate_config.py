@@ -36,6 +36,12 @@ DEFAULTS: dict[str, Any] = {
     },
     "mqtt": {
         "enabled": False,
+        "use_ha_service": True,
+        "host": "",
+        "port": 1883,
+        "tls": False,
+        "username": "",
+        "password": "",
         "topic": "ais-catcher/ais",
         "msgformat": "JSON_FULL",
         "qos": 0,
@@ -164,6 +170,23 @@ def validate_options(options: dict[str, Any]) -> None:
     mqtt = require_type(options["mqtt"], dict, "mqtt")
     require_keys(mqtt, MQTT_KEYS, "mqtt")
     require_type(mqtt["enabled"], bool, "mqtt.enabled")
+    require_type(mqtt["use_ha_service"], bool, "mqtt.use_ha_service")
+    require_type(mqtt["host"], str, "mqtt.host")
+    mqtt_port = require_type(mqtt["port"], int, "mqtt.port")
+    if not 0 <= mqtt_port <= 65535:
+        raise fail("mqtt.port must be between 0 and 65535")
+    require_type(mqtt["tls"], bool, "mqtt.tls")
+    require_type(mqtt["username"], str, "mqtt.username")
+    require_type(mqtt["password"], str, "mqtt.password")
+    if (
+        mqtt["enabled"]
+        and not mqtt["use_ha_service"]
+        and (not mqtt["host"].strip() or mqtt_port == 0)
+    ):
+        raise fail(
+            "mqtt.host and mqtt.port are required when MQTT is enabled with "
+            "mqtt.use_ha_service disabled"
+        )
     topic = require_type(mqtt["topic"], str, "mqtt.topic")
     if not topic.strip():
         raise fail("mqtt.topic must not be empty")

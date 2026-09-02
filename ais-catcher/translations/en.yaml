@@ -70,11 +70,41 @@ configuration:
             description: TCP destination port.
   mqtt:
     name: MQTT output
-    description: Publish locally received AIS messages through the Home Assistant MQTT broker.
+    description: Publish locally received AIS messages over MQTT.
     fields:
       enabled:
         name: Enable MQTT output
-        description: Use the Home Assistant MQTT service discovered by Supervisor.
+        description: Publish decoded AIS messages to an MQTT broker.
+      use_ha_service:
+        name: Use Home Assistant MQTT service
+        description: >-
+          Use the MQTT broker discovered by Supervisor. Disable to target a
+          different broker using the fields below.
+      host:
+        name: MQTT broker host
+        description: >-
+          Custom broker hostname or IP address; only used when the Home
+          Assistant MQTT service is not used.
+      port:
+        name: MQTT broker port
+        description: >-
+          Custom broker port; only used when the Home Assistant MQTT
+          service is not used.
+      tls:
+        name: MQTT broker TLS
+        description: >-
+          Connect to the custom broker over TLS (MQTTS); only used when the
+          Home Assistant MQTT service is not used.
+      username:
+        name: MQTT username
+        description: >-
+          Custom broker username, if required; only used when the Home
+          Assistant MQTT service is not used.
+      password:
+        name: MQTT password
+        description: >-
+          Custom broker password, if required; only used when the Home
+          Assistant MQTT service is not used.
       topic:
         name: MQTT topic
         description: Topic for AIS messages; supports AIS-catcher %mmsi% templates.

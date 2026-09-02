@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.18
+
+- Allow MQTT output to target a custom broker instead of the Home
+  Assistant-discovered Mosquitto service, via a new `mqtt.use_ha_service`
+  toggle plus `mqtt.host`, `mqtt.port`, `mqtt.tls`, `mqtt.username`, and
+  `mqtt.password` options. Home Assistant service discovery remains the
+  default.
+
 ## 0.1.17
 
 - Persist the web viewer's ship and statistics state across restarts and

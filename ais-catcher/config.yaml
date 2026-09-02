@@ -1,5 +1,5 @@
 name: AIS-catcher
-version: 0.1.17
+version: 0.1.18
 slug: ais-catcher
 description: Receive and share AIS traffic with an RTL-SDR and AIS-catcher
 url: https://github.com/pschmitt/home-assistant-apps/tree/main/ais-catcher
@@ -40,6 +40,12 @@ options:
     tcp_outputs: []
   mqtt:
     enabled: false
+    use_ha_service: true
+    host: ""
+    port: 1883
+    tls: false
+    username: ""
+    password: ""
     topic: ais-catcher/ais
     msgformat: JSON_FULL
     qos: 0
@@ -76,6 +82,12 @@ schema:
         port: int(1,65535)
   mqtt:
     enabled: bool
+    use_ha_service: bool
+    host: str
+    port: int(0,65535)
+    tls: bool
+    username: str
+    password: password
     topic: str
     msgformat: list(NMEA|JSON_NMEA|JSON_FULL)
     qos: int(0,2)

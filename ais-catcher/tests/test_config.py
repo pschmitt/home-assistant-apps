@@ -4,12 +4,14 @@
 from __future__ import annotations
 
 import json
+import os
 import pathlib
 import stat
 import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -308,6 +310,71 @@ class ConfigGenerationTests(unittest.TestCase):
 
         with self.assertRaisesRegex(generate_config.ConfigurationError, "mqtt.topic"):
             generate_config.validate_options(options)
+
+    def test_mqtt_custom_host_requires_host_and_port(self) -> None:
+        options = generate_config.merged_options(
+            json.loads((OPTIONS / "minimal.json").read_text(encoding="utf-8"))
+        )
+        options["mqtt"].update({"enabled": True, "use_ha_service": False})
+
+        with self.assertRaisesRegex(
+            generate_config.ConfigurationError, "mqtt.host.*mqtt.port"
+        ):
+            generate_config.validate_options(options)
+
+    def test_mqtt_custom_host_is_accepted_without_the_discovered_service(self) -> None:
+        options = generate_config.merged_options(
+            json.loads((OPTIONS / "minimal.json").read_text(encoding="utf-8"))
+        )
+        options["mqtt"].update(
+            {
+                "enabled": True,
+                "use_ha_service": False,
+                "host": "mqtt.example.com",
+                "port": 1883,
+                "username": "ais-catcher",
+                "password": "custom-secret",
+            }
+        )
+
+        generate_config.validate_options(options)
+        config = generate_config.build_config(
+            options,
+            mqtt_service={
+                "host": "mqtt.example.com",
+                "port": 1883,
+                "username": "ais-catcher",
+                "password": "custom-secret",
+                "ssl": False,
+            },
+        )["config"]
+        mqtt = config["mqtt"][0]
+
+        self.assertEqual(mqtt["host"], "mqtt.example.com")
+        self.assertEqual(mqtt["username"], "ais-catcher")
+        self.assertEqual(mqtt["password"], "custom-secret")
+
+    def test_load_mqtt_service_from_environment_reads_custom_host_details(self) -> None:
+        environment = {
+            "AIS_MQTT_HOST": "mqtt.example.com",
+            "AIS_MQTT_PORT": "8883",
+            "AIS_MQTT_USERNAME": "ais-catcher",
+            "AIS_MQTT_PASSWORD": "custom-secret",
+            "AIS_MQTT_SSL": "true",
+        }
+        with mock.patch.dict(os.environ, environment, clear=False):
+            service = generate_config.load_mqtt_service_from_environment()
+
+        self.assertEqual(
+            service,
+            {
+                "host": "mqtt.example.com",
+                "port": 8883,
+                "username": "ais-catcher",
+                "password": "custom-secret",
+                "ssl": True,
+            },
+        )
 
     def test_invalid_community_key_fails_before_writing_configuration(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:

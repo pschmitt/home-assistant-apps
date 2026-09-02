@@ -37,7 +37,8 @@ get_mqtt_service()
 
 main() {
   local summary mode log_level antenna_enabled antenna_latitude antenna_longitude
-  local mqtt_enabled mqtt_host mqtt_port mqtt_username mqtt_password mqtt_ssl
+  local mqtt_enabled mqtt_use_ha_service mqtt_host mqtt_port mqtt_username
+  local mqtt_password mqtt_ssl
   local mqtt_service mqtt_service_ready
   local no_hardware
   local -a ais_args generator_args
@@ -81,31 +82,54 @@ main() {
   fi
   if [[ "${mqtt_enabled}" == true ]]
   then
-    mqtt_service_ready=false
-    for ((attempt = 1; attempt <= MQTT_SERVICE_ATTEMPTS; attempt++))
-    do
-      if mqtt_service="$(get_mqtt_service 2>/dev/null)" \
-        && mqtt_host="$(jq --raw-output --exit-status '.host // empty' <<< "${mqtt_service}")" \
-        && mqtt_port="$(jq --raw-output --exit-status '.port // empty' <<< "${mqtt_service}")" \
-        && mqtt_username="$(jq --raw-output '.username // empty' <<< "${mqtt_service}")" \
-        && mqtt_password="$(jq --raw-output '.password // empty' <<< "${mqtt_service}")" \
-        && mqtt_ssl="$(jq --raw-output '.ssl | tostring' <<< "${mqtt_service}")" \
-        && [[ "${mqtt_ssl}" == true || "${mqtt_ssl}" == false ]]
-      then
-        mqtt_service_ready=true
-        break
-      fi
-      if (( attempt < MQTT_SERVICE_ATTEMPTS ))
-      then
-        sleep 1
-      fi
-    done
-    if [[ "${mqtt_service_ready}" != true ]]
+    if ! mqtt_use_ha_service="$(jq --raw-output '.mqtt.use_ha_service // true' "${OPTIONS_PATH}")"
     then
-      printf 'AIS-catcher: MQTT is enabled, but the Home Assistant MQTT service is unavailable after waiting %s seconds.\n' \
-        "${MQTT_SERVICE_ATTEMPTS}" >&2
-      printf 'AIS-catcher: install/start the Mosquitto broker or disable mqtt.enabled.\n' >&2
+      printf 'AIS-catcher: cannot read mqtt.use_ha_service from %s.\n' "${OPTIONS_PATH}" >&2
       return 2
+    fi
+    if [[ "${mqtt_use_ha_service}" == true ]]
+    then
+      mqtt_service_ready=false
+      for ((attempt = 1; attempt <= MQTT_SERVICE_ATTEMPTS; attempt++))
+      do
+        if mqtt_service="$(get_mqtt_service 2>/dev/null)" \
+          && mqtt_host="$(jq --raw-output --exit-status '.host // empty' <<< "${mqtt_service}")" \
+          && mqtt_port="$(jq --raw-output --exit-status '.port // empty' <<< "${mqtt_service}")" \
+          && mqtt_username="$(jq --raw-output '.username // empty' <<< "${mqtt_service}")" \
+          && mqtt_password="$(jq --raw-output '.password // empty' <<< "${mqtt_service}")" \
+          && mqtt_ssl="$(jq --raw-output '.ssl | tostring' <<< "${mqtt_service}")" \
+          && [[ "${mqtt_ssl}" == true || "${mqtt_ssl}" == false ]]
+        then
+          mqtt_service_ready=true
+          break
+        fi
+        if (( attempt < MQTT_SERVICE_ATTEMPTS ))
+        then
+          sleep 1
+        fi
+      done
+      if [[ "${mqtt_service_ready}" != true ]]
+      then
+        printf 'AIS-catcher: MQTT is enabled, but the Home Assistant MQTT service is unavailable after waiting %s seconds.\n' \
+          "${MQTT_SERVICE_ATTEMPTS}" >&2
+        printf 'AIS-catcher: install/start the Mosquitto broker, disable mqtt.enabled, or configure a custom MQTT host.\n' >&2
+        return 2
+      fi
+    else
+      if ! mqtt_host="$(jq --raw-output '.mqtt.host // empty' "${OPTIONS_PATH}")"
+      then
+        printf 'AIS-catcher: cannot read mqtt.host from %s.\n' "${OPTIONS_PATH}" >&2
+        return 2
+      fi
+      if [[ -z "${mqtt_host}" ]]
+      then
+        printf 'AIS-catcher: mqtt.enabled is set with mqtt.use_ha_service disabled, but mqtt.host is empty.\n' >&2
+        return 2
+      fi
+      mqtt_port="$(jq --raw-output '.mqtt.port // 1883' "${OPTIONS_PATH}")"
+      mqtt_username="$(jq --raw-output '.mqtt.username // empty' "${OPTIONS_PATH}")"
+      mqtt_password="$(jq --raw-output '.mqtt.password // empty' "${OPTIONS_PATH}")"
+      mqtt_ssl="$(jq --raw-output '.mqtt.tls // false | tostring' "${OPTIONS_PATH}")"
     fi
     export AIS_MQTT_HOST="${mqtt_host}"
     export AIS_MQTT_PORT="${mqtt_port}"
