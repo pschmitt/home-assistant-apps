@@ -3,7 +3,7 @@
 ARG AIS_CATCHER_COMMIT=8833c64b3da0c42e9a724b9bd13eaab2fffadcca
 ARG AIS_CATCHER_SOURCE_SHA256=597ec260638d55e51d4aea5aeccd8b4a8d9f514a1bdf637870363def645eba3c
 
-FROM docker.io/library/debian:bookworm-slim@sha256:88200866dfff7ea7f5cbcb6ec7c8a701889efe6fe859fe64d6990e4b07ea4171 AS build
+FROM docker.io/library/debian:bookworm-slim@sha256:3783cc01769c7b2b1b83a5c5ad96c815348e28ed7da68e2e3687004faa906251 AS build
 
 ARG AIS_CATCHER_COMMIT
 ARG AIS_CATCHER_SOURCE_SHA256
