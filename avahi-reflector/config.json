@@ -1,6 +1,6 @@
 {
   "name": "Avahi Reflector",
-  "version": "1.1",
+  "version": "1.2",
   "slug": "avahi_reflector",
   "description": "avahi-daemon reflector",
   "arch": [
