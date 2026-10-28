@@ -63,7 +63,7 @@ RUN cmake -S . -B build \
   && cmake --build build --parallel \
   && cmake --install build
 
-FROM ghcr.io/home-assistant/base-debian:bookworm@sha256:0bf0b64cc09b5490fc06cb6d71ca45f3949cd2fb0bee1abf2e422a49ddae1640
+FROM ghcr.io/home-assistant/base-debian:bookworm@sha256:ebb912a11616e3eda2d31204803587276e70bbb4e7f02a6c92dba5f43256b48d
 
 ARG BUILD_VERSION=0.1.18
 ARG BUILD_ARCH
